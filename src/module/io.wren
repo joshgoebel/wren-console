@@ -99,6 +99,15 @@ foreign class File {
     return Scheduler.runNextScheduled_()
   }
 
+  static splitext(path) {
+    var segments = path.split(".")
+    return [segments[0], segments[1..-1]]
+  }
+
+  static basename(path) {
+    return path.split("/")[-1]
+  }
+
   static size(path) {
     ensurePath_(path)
     sizePath_(path, Fiber.current)
