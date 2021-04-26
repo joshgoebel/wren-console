@@ -4,6 +4,7 @@
 #include "os.h"
 #include "vm.h"
 #include "wren.h"
+#include "../module/socket.h"
 
 int main(int argc, const char* argv[])
 {
@@ -24,6 +25,8 @@ int main(int argc, const char* argv[])
   }
 
   osSetArguments(argc, argv);
+
+
 
   WrenInterpretResult result;
   if (argc == 1)

@@ -8,6 +8,7 @@
 #include "repl.wren.inc"
 #include "scheduler.wren.inc"
 #include "timer.wren.inc"
+#include "socket.wren.inc"
 
 extern void directoryList(WrenVM* vm);
 extern void directoryCreate(WrenVM* vm);

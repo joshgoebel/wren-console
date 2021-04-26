@@ -582,10 +582,17 @@ static void stdinReadCallback(uv_stream_t* stream, ssize_t numRead,
   {
     stdinOnData = wrenMakeCallHandle(vm, "onData_(_)");
   }
-  
+
+  printf("Before\n");
   // If stdin was closed, send null to let io.wren know.
   if (numRead == UV_EOF)
   {
+    printf("Stopping\n");
+    fflush(stdout);
+    uv_stop(getLoop());
+    uv_loop_close(getLoop());
+
+
     wrenEnsureSlots(vm, 2);
     wrenSetSlotHandle(vm, 0, stdinClass);
     wrenSetSlotNull(vm, 1);
@@ -594,6 +601,8 @@ static void stdinReadCallback(uv_stream_t* stream, ssize_t numRead,
     shutdownStdin();
     return;
   }
+  printf("After\n");
+  fflush(stdout);
 
   // TODO: Handle other errors.
 
