@@ -2,7 +2,7 @@ import "meta" for Meta
 import "io" for Stdin, Stdout
 import "os" for Platform
 
-class CPString {
+class CodePointList {
   construct new(s) {
     _string = s
   }
@@ -101,11 +101,11 @@ class Repl {
       insertCodePoint(codepoint)
     } else if (byte == Chars.ctrlW) { // Handle Ctrl+w
       // Delete trailing spaces
-      codepoints = CPString.new(_line)
+      codepoints = CodePointList.new(_line)
       while (_cursor != 0 && codepoints[_cursor - 1] == " ") {
         deleteLeft()
       }
-      codepoints = CPString.new(_line)
+      codepoints = CodePointList.new(_line)
       // Delete until the next space
       while (_cursor != 0 && codepoints[_cursor - 1] != " ") {
         deleteLeft()
@@ -119,7 +119,7 @@ class Repl {
   }
 
   insertCodePoint(cp) {
-    var codePoints = CPString.new(_line)
+    var codePoints = CodePointList.new(_line)
     _line = codePoints[0..._cursor] + cp  + codePoints[_cursor..-1]
     _cursor = _cursor + 1
   }
@@ -136,7 +136,7 @@ class Repl {
     if (_cursor == 0) return
 
     // Delete the character before the cursor.
-    var codePoints = CPString.new(_line)
+    var codePoints = CodePointList.new(_line)
     _line = codePoints[0...(_cursor - 1)] + codePoints[_cursor..-1]
     _cursor = _cursor - 1
   }
@@ -146,7 +146,7 @@ class Repl {
     if (_cursor == _line.count) return
 
     // Delete the character after the cursor.
-    var codePoints = CPString.new(_line)
+    var codePoints = CodePointList.new(_line)
     _line = codePoints[0..._cursor] + codePoints[(_cursor + 1)..-1]
   }
 
