@@ -8,7 +8,7 @@ class CPString {
   }
   [x] {
     if (x is Num) {
-      return string.codePoints.skip(x)[0]
+      return _string.codePoints.skip(x).take(1).map { |x| String.fromCodePoint(x) }.join()
     } else {
       if (x.to == -1) {
         return _string.codePoints.skip(x.from).map { |x| String.fromCodePoint(x) }.join()
@@ -55,6 +55,7 @@ class Repl {
 
   handleChar(codepoint) {
     var byte = codepoint.bytes[0]
+    var codepoints
     if (byte == Chars.ctrlC) {
       System.print()
       return true
@@ -100,13 +101,13 @@ class Repl {
       insertCodePoint(codepoint)
     } else if (byte == Chars.ctrlW) { // Handle Ctrl+w
       // Delete trailing spaces
-      _lne = CPString.new(_line)
-      while (_cursor != 0 && _lne[_cursor - 1] == " ") {
+      codepoints = CPString.new(_line)
+      while (_cursor != 0 && codepoints[_cursor - 1] == " ") {
         deleteLeft()
       }
-      _lne = CPString.new(_line)
+      codepoints = CPString.new(_line)
       // Delete until the next space
-      while (_cursor != 0 && _lne[_cursor - 1] != " ") {
+      while (_cursor != 0 && codepoints[_cursor - 1] != " ") {
         deleteLeft()
       }
     } else {
