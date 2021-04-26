@@ -2,6 +2,15 @@ import "meta" for Meta
 import "io" for Stdin, Stdout
 import "os" for Platform
 
+class CPString {
+  construct new(s) {
+    _string = s
+  }
+  [x] {
+    return String.fromCodePoint(_string.codePoints[x])
+  }
+}
+
 /// Abstract base class for the REPL. Manages the input line and history, but
 /// does not render.
 class Repl {
@@ -23,13 +32,14 @@ class Repl {
     refreshLine(false)
 
     while (true) {
-      var byte = Stdin.readByte()
-      if (handleChar(byte)) break
+      var codepoint = Stdin.readCodePoint()
+      if (handleChar(codepoint)) break
       refreshLine(true)
     }
   }
 
-  handleChar(byte) {
+  handleChar(codepoint) {
+    var byte = codepoint.bytes[0]
     if (byte == Chars.ctrlC) {
       System.print()
       return true
@@ -70,14 +80,18 @@ class Repl {
     } else if (byte == Chars.delete) {
       deleteLeft()
     } else if (byte >= Chars.space && byte <= Chars.tilde) {
-      insertChar(byte)
+      insertCodePoint(codepoint)
+    } else if (byte > 127) {
+      insertCodePoint(codepoint)
     } else if (byte == Chars.ctrlW) { // Handle Ctrl+w
       // Delete trailing spaces
-      while (_cursor != 0 && _line[_cursor - 1] == " ") {
+      _lne = CPString.new(_line)
+      while (_cursor != 0 && _lne[_cursor - 1] == " ") {
         deleteLeft()
       }
+      _lne = CPString.new(_line)
       // Delete until the next space
-      while (_cursor != 0 && _line[_cursor - 1] != " ") {
+      while (_cursor != 0 && _lne[_cursor - 1] != " ") {
         deleteLeft()
       }
     } else {
@@ -86,6 +100,13 @@ class Repl {
     }
 
     return false
+  }
+
+  insertCodePoint(cp) {
+    _line = _line.codePoints.take(_cursor).map { |x| String.fromCodePoint(x) }.join() + 
+      cp +
+      _line.codePoints.skip(_cursor).map { |x| String.fromCodePoint(x) }.join()
+    _cursor = _cursor + 1
   }
 
   /// Inserts the character with [byte] value at the current cursor position.
@@ -295,7 +316,8 @@ class AnsiRepl is Repl {
     super()
   }
 
-  handleChar(byte) {
+  handleChar(codepoint) {
+    var byte = codepoint.bytes[0]
     if (byte == Chars.ctrlA) {
       cursor = 0
     } else if (byte == Chars.ctrlB) {
@@ -317,7 +339,7 @@ class AnsiRepl is Repl {
       // TODO: ESC H and F to move to beginning and end of line. (Both ESC
       // [ and ESC 0 sequences?)
       // TODO: Ctrl-W delete previous word.
-      return super.handleChar(byte)
+      return super.handleChar(codepoint)
     }
 
     return false
