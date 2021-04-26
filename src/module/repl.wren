@@ -7,8 +7,23 @@ class CPString {
     _string = s
   }
   [x] {
-    return String.fromCodePoint(_string.codePoints[x])
+    if (x is Num) {
+      return string.codePoints.skip(x)[0]
+    } else {
+      if (x.to == -1) {
+        return _string.codePoints.skip(x.from).map { |x| String.fromCodePoint(x) }.join()
+      } else {
+        var n = x.to - x.from
+        return _string.codePoints.skip(x.from).take(n).map { |x| String.fromCodePoint(x) }.join()
+      }
+    }
   }
+  // +(other) {
+  //   _string = _string + other
+  // }
+  // toString {
+  //   return _string
+  // }
 }
 
 /// Abstract base class for the REPL. Manages the input line and history, but
@@ -103,9 +118,8 @@ class Repl {
   }
 
   insertCodePoint(cp) {
-    _line = _line.codePoints.take(_cursor).map { |x| String.fromCodePoint(x) }.join() + 
-      cp +
-      _line.codePoints.skip(_cursor).map { |x| String.fromCodePoint(x) }.join()
+    var codePoints = CPString.new(_line)
+    _line = codePoints[0..._cursor] + cp  + codePoints[_cursor..-1]
     _cursor = _cursor + 1
   }
 
@@ -121,7 +135,8 @@ class Repl {
     if (_cursor == 0) return
 
     // Delete the character before the cursor.
-    _line = _line[0...(_cursor - 1)] + _line[_cursor..-1]
+    var codePoints = CPString.new(_line)
+    _line = codePoints[0...(_cursor - 1)] + codePoints[_cursor..-1]
     _cursor = _cursor - 1
   }
 
@@ -130,7 +145,8 @@ class Repl {
     if (_cursor == _line.count) return
 
     // Delete the character after the cursor.
-    _line = _line[0..._cursor] + _line[(_cursor + 1)..-1]
+    var codePoints = CPString.new(_line)
+    _line = codePoints[0..._cursor] + codePoints[(_cursor + 1)..-1]
   }
 
   handleEscapeBracket(byte) {
