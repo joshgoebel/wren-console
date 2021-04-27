@@ -55,6 +55,10 @@ extern void stdoutFlush(WrenVM* vm);
 extern void schedulerCaptureMethods(WrenVM* vm);
 extern void timerStartTimer(WrenVM* vm);
 
+extern void tcpServerAllocate(WrenVM* vm);
+extern void tcpServerFinalize(WrenVM* vm);
+extern void tcpServerServe(WrenVM* vm);
+
 // The maximum number of foreign methods a single class defines. Ideally, we
 // would use variable-length arrays for each class in the table below, but
 // C++98 doesn't have any easy syntax for nested global static data, so we
@@ -123,6 +127,14 @@ typedef struct
 // The array of built-in modules.
 static ModuleRegistry modules[] =
 {
+  MODULE(socket)
+    CLASS(TCPServer)
+      STATIC_METHOD("<allocate>", tcpServerAllocate)
+      FINALIZER(tcpServerFinalize)
+      // STATIC_METHOD("<finalize>", tcpServerFinalize)
+      METHOD("serve_(_,_)", tcpServerServe)
+    END_CLASS
+  END_MODULE
   MODULE(io)
     CLASS(Directory)
       STATIC_METHOD("create_(_,_)", directoryCreate)

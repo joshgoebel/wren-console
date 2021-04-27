@@ -955,4 +955,5 @@ static const char* replModuleSource =
 "} else {\n"
 "  // ANSI escape sequences probably aren't supported, so degrade.\n"
 "  SimpleRepl.new().run()\n"
-"}\n";
+"}\n"
+"Process.exit()";

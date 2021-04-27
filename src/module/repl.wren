@@ -952,3 +952,4 @@ if (Platform.isPosix && Stdin.isTerminal) {
   // ANSI escape sequences probably aren't supported, so degrade.
   SimpleRepl.new().run()
 }
+Process.exit()

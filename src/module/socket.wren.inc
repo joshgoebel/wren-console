@@ -3,5 +3,20 @@
 
 static const char* socketModuleSource =
 "class Socket {\n"
+"    \n"
+"}\n"
 "\n"
-"}\n";
+"foreign class TCPServer {\n"
+"    construct new(ip, port) {\n"
+"            _ip = ip\n"
+"            _port = port\n"
+"        }\n"
+"    listen=(handler) {\n"
+"        _handler = handler\n"
+"    }\n"
+"    serve() {\n"
+"        serve_(_ip,_port)\n"
+"    }\n"
+"\n"
+"    foreign serve_(ip,port)\n"
+"}";

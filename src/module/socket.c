@@ -4,9 +4,11 @@
 #include <stdlib.h>
 #include <uv.h>
 #include "../cli/vm.h"
+#include "socket.h"
 
 uv_loop_t *loop;
 struct sockaddr_in addr;
+
 
 void alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
     buf->base = (char*)malloc(suggested_size);
@@ -51,6 +53,35 @@ void on_new_connection(uv_stream_t *server, int status) {
         uv_close((uv_handle_t*) client, NULL);
     }
 }
+
+void tcpServerAllocate(WrenVM* vm) {
+    fprintf(stdout, "alloc\n");
+    fflush(0);
+}
+
+void tcpServerFinalize(WrenVM* vm) {
+    fprintf(stdout, "finalized\n");
+    fflush(0);
+}
+
+void tcpServerServe(WrenVM* vm) {
+
+    const char* address = wrenGetSlotString(vm, 1);
+    const double port = wrenGetSlotDouble(vm, 2);
+
+    tcp_server_t* tcpServer = (tcp_server_t*)malloc(sizeof(tcp_server_t));
+    memset(tcpServer, 0, sizeof(tcp_server_t));
+
+    uv_tcp_init(getLoop(), &tcpServer->server);
+    uv_ip4_addr(address, port, &tcpServer->addr);
+    uv_tcp_bind(&tcpServer->server, (const struct sockaddr*)&tcpServer->addr, 0);
+    int r = uv_listen((uv_stream_t*)&tcpServer->server, 128, on_new_connection);
+    if (r) {
+        fprintf(stderr, "Listen error %s\n", uv_strerror(r));
+        // return 1;
+    }
+}
+
 
 // int mains() {
 //     loop = uv_default_loop();
