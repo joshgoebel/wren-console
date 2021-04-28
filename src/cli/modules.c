@@ -57,7 +57,12 @@ extern void timerStartTimer(WrenVM* vm);
 
 extern void tcpServerAllocate(WrenVM* vm);
 extern void tcpServerFinalize(WrenVM* vm);
-extern void tcpServerServe(WrenVM* vm);
+extern void tcpServerListen(WrenVM* vm);
+extern void tcpServerNew(WrenVM* vm);
+extern void tcpServerStop(WrenVM* vm);
+
+extern void uvConnectionWrite(WrenVM* vm);
+extern void uvConnectionClose(WrenVM* vm);
 
 // The maximum number of foreign methods a single class defines. Ideally, we
 // would use variable-length arrays for each class in the table below, but
@@ -128,11 +133,15 @@ typedef struct
 static ModuleRegistry modules[] =
 {
   MODULE(socket)
-    CLASS(TCPServer)
+    CLASS(UVConnection)
+      METHOD("write(_)", uvConnectionWrite)
+      METHOD("close()", uvConnectionClose)
+    END_CLASS
+    CLASS(UVListener)
       STATIC_METHOD("<allocate>", tcpServerAllocate)
       FINALIZER(tcpServerFinalize)
-      // STATIC_METHOD("<finalize>", tcpServerFinalize)
-      METHOD("serve_(_,_)", tcpServerServe)
+      METHOD("listen_()", tcpServerListen)
+      METHOD("stop_()", tcpServerStop)
     END_CLASS
   END_MODULE
   MODULE(io)

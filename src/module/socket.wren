@@ -1,18 +1,69 @@
 class Socket {
     
+
 }
 
-foreign class TCPServer {
+
+
+// foreign class TCPServer is Base {
+//     construct new(ip, port) {
+//             _ip = ip
+//             _port = port
+//         }
+//     listen=(handler) {
+//         _handler = handler
+//     }
+//     serve() {
+//         serve_(_ip,_port)
+//     }
+
+//     foreign serve_(ip,port)
+// }
+
+class TCPServer {
     construct new(ip, port) {
-            _ip = ip
-            _port = port
-        }
-    listen=(handler) {
-        _handler = handler
+        _ip = ip
+        _port = port
+        _uv = UVListener.new(ip, port, this)
+    }
+    onConnect=(fn) {
+        _onConnect = fn
     }
     serve() {
-        serve_(_ip,_port)
+        _uv.listen_()
     }
+    stop() {
+        _uv.stop_()
+    }
+}
 
-    foreign serve_(ip,port)
+class Connection {
+    construct new() {
+        _uv = UVConnection.new(this)
+    }
+    writeLn(data) {
+        _uv.write("%(data)\n")
+    }
+    close() {
+        _uv.close()
+    }
+}
+
+#allocates= uv_tcp_tclient
+foreign class UVConnection {
+    construct new(connectionWren) {
+
+    }
+    foreign write(str)
+    foreign close()
+}
+
+foreign class UVListener {
+    construct new(ip,port,serverWren) {
+
+    }
+    // binds and starts listening
+    foreign listen_()
+    // stops listening
+    foreign stop_()
 }

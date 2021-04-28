@@ -54,27 +54,49 @@ void on_new_connection(uv_stream_t *server, int status) {
     }
 }
 
+void uvConnectionWrite(WrenVM* vm) {
+}
+
+void uvConnectionClose(WrenVM* vm) {
+}
+
+
 void tcpServerAllocate(WrenVM* vm) {
-    fprintf(stdout, "alloc\n");
+    fprintf(stdout, "tcpServerAllocate\n");
     fflush(0);
-}
 
-void tcpServerFinalize(WrenVM* vm) {
-    fprintf(stdout, "finalized\n");
-    fflush(0);
-}
-
-void tcpServerServe(WrenVM* vm) {
+    tcp_server_t* tcpServer = (tcp_server_t*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(tcp_server_t));
+    memset(tcpServer, 0, sizeof(tcp_server_t));
 
     const char* address = wrenGetSlotString(vm, 1);
     const double port = wrenGetSlotDouble(vm, 2);
 
-    tcp_server_t* tcpServer = (tcp_server_t*)malloc(sizeof(tcp_server_t));
-    memset(tcpServer, 0, sizeof(tcp_server_t));
+    fprintf(stderr, "addrss %s\n", address);
+    fprintf(stderr, "port %d\n", (int)port);
 
     uv_tcp_init(getLoop(), &tcpServer->server);
     uv_ip4_addr(address, port, &tcpServer->addr);
+
+    
+}
+
+void tcpServerFinalize(WrenVM* vm) {
+    fprintf(stdout, "tcpServerFinalize\n");
+    fflush(0);
+}
+
+void tcpServerStop(WrenVM* vm) {
+
+    tcp_server_t* tcpServer = (tcp_server_t*)wrenGetSlotForeign(vm, 0);
+    // unbind
+    // stop
+
+}
+
+void tcpServerListen(WrenVM* vm) {
+    tcp_server_t* tcpServer = (tcp_server_t*)wrenGetSlotForeign(vm, 0);
     uv_tcp_bind(&tcpServer->server, (const struct sockaddr*)&tcpServer->addr, 0);
+
     int r = uv_listen((uv_stream_t*)&tcpServer->server, 128, on_new_connection);
     if (r) {
         fprintf(stderr, "Listen error %s\n", uv_strerror(r));
