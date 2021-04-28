@@ -29,6 +29,7 @@ class TCPServer {
     onConnect=(fn) {
         _onConnect = fn
     }
+    onConnect { _onConnect }
     serve() {
         _uv.listen_()
     }

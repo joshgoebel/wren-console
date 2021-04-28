@@ -3,6 +3,7 @@ import "timer" for Timer
 
 var server = TCPServer.new("0.0.0.0",7000)
 server.onConnect = Fn.new() { |connection|
+    System.print("onConnect fired")
     connection.writeLn("Hello, bob")
     connection.close()
 }

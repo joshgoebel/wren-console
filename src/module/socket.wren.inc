@@ -33,6 +33,7 @@ static const char* socketModuleSource =
 "    onConnect=(fn) {\n"
 "        _onConnect = fn\n"
 "    }\n"
+"    onConnect { _onConnect }\n"
 "    serve() {\n"
 "        _uv.listen_()\n"
 "    }\n"
