@@ -8,6 +8,7 @@ server.onConnect = Fn.new() { |connection|
     var x 
     while (x = connection.readWait()) {
         System.print(x)
+        connection.write(x)
     }
     // connection.close()
 }

@@ -45,9 +45,9 @@ void echo_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf) {
             uv_close((uv_handle_t*) client, NULL);
         }
     } else if (nread > 0) {
-        uv_write_t *req = (uv_write_t *) malloc(sizeof(uv_write_t));
-        uv_buf_t wrbuf = uv_buf_init(buf->base, nread);
-        uv_write(req, client, &wrbuf, 1, echo_write);
+        // uv_write_t *req = (uv_write_t *) malloc(sizeof(uv_write_t));
+        // uv_buf_t wrbuf = uv_buf_init(buf->base, nread);
+        // uv_write(req, client, &wrbuf, 1, echo_write);
 
 
         WrenVM* vm = getVM();
