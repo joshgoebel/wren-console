@@ -39,11 +39,13 @@ class TCPServer {
 
 class Connection {
     construct new() {
+        System.print("new connection")
         _uv = UVConnection.new(this)
     }
     writeLn(data) {
         _uv.write("%(data)\n")
     }
+    uv_ { _uv }
     close() {
         _uv.close()
     }
@@ -52,7 +54,10 @@ class Connection {
 #allocates= uv_tcp_tclient
 foreign class UVConnection {
     construct new(connectionWren) {
-
+        System.print("new UVconnection")
+    }
+    test() {
+        System.print("UvConnection#test")
     }
     foreign write(str)
     foreign close()

@@ -7,13 +7,14 @@ server.onConnect = Fn.new() { |connection|
     connection.close()
 }
 server.serve()
-Timer.sleep(10000)
-System.print("stopping...")
-server.stop()
 
-Timer.sleep(10000)
-System.print("serving...")
-server.serve()
+// Timer.sleep(10000)
+// System.print("stopping...")
+// server.stop()
+
+// Timer.sleep(10000)
+// System.print("serving...")
+// server.serve()
 // server.stop()
 
 // server = null

@@ -63,6 +63,7 @@ extern void tcpServerStop(WrenVM* vm);
 
 extern void uvConnectionWrite(WrenVM* vm);
 extern void uvConnectionClose(WrenVM* vm);
+extern void uvConnectionAllocate(WrenVM* vm);
 
 // The maximum number of foreign methods a single class defines. Ideally, we
 // would use variable-length arrays for each class in the table below, but
@@ -136,6 +137,7 @@ static ModuleRegistry modules[] =
     CLASS(UVConnection)
       METHOD("write(_)", uvConnectionWrite)
       METHOD("close()", uvConnectionClose)
+      STATIC_METHOD("<allocate>", uvConnectionAllocate)
     END_CLASS
     CLASS(UVListener)
       STATIC_METHOD("<allocate>", tcpServerAllocate)
