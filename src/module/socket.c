@@ -70,14 +70,13 @@ void tcpServerAllocate(WrenVM* vm) {
 
     const char* address = wrenGetSlotString(vm, 1);
     const double port = wrenGetSlotDouble(vm, 2);
+    WrenHandle* handle = wrenGetSlotHandle(vm, 3);
+    tcpServer->handle = handle;
 
     fprintf(stderr, "addrss %s\n", address);
     fprintf(stderr, "port %d\n", (int)port);
 
-    uv_tcp_init(getLoop(), &tcpServer->server);
     uv_ip4_addr(address, port, &tcpServer->addr);
-
-    
 }
 
 void tcpServerFinalize(WrenVM* vm) {
@@ -85,16 +84,33 @@ void tcpServerFinalize(WrenVM* vm) {
     fflush(0);
 }
 
+static void after_shutdown(uv_shutdown_t* req, int status) {
+  /*assert(status == 0);*/
+  if (status < 0)
+    fprintf(stderr, "err: %s\n", uv_strerror(status));
+  fprintf(stderr, "shutdown");
+//   data_cntr = 0;
+//   uv_close((uv_handle_t*)req->handle, on_close);
+  free(req);
+}
+
+static void after_close(uv_handle_t* handle) {
+    fprintf(stderr, "after close\n");
+}
+
 void tcpServerStop(WrenVM* vm) {
-
+    fprintf(stderr, "tcpServerStop\n");
     tcp_server_t* tcpServer = (tcp_server_t*)wrenGetSlotForeign(vm, 0);
-    // unbind
-    // stop
+    uv_shutdown_t* req;
+    // fprintf(stderr, "trying shutdown");
+    // int r = uv_shutdown(req, (uv_stream_t*)&tcpServer->server, after_shutdown);
 
+    uv_close((uv_handle_t*)&tcpServer->server, after_close);
 }
 
 void tcpServerListen(WrenVM* vm) {
     tcp_server_t* tcpServer = (tcp_server_t*)wrenGetSlotForeign(vm, 0);
+    uv_tcp_init(getLoop(), &tcpServer->server);
     uv_tcp_bind(&tcpServer->server, (const struct sockaddr*)&tcpServer->addr, 0);
 
     int r = uv_listen((uv_stream_t*)&tcpServer->server, 128, on_new_connection);

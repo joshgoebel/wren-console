@@ -4,6 +4,7 @@
 typedef struct tcp_server_t {
     struct sockaddr_in addr;
     uv_tcp_t server;
+    WrenHandle* handle;
 } tcp_server_t;
 
 
