@@ -1,9 +1,7 @@
+import "scheduler" for Scheduler
+
 class Socket {
-    
-
 }
-
-
 
 // foreign class TCPServer is Base {
 //     construct new(ip, port) {
@@ -30,25 +28,50 @@ class TCPServer {
         _onConnect = fn
     }
     onConnect { _onConnect }
-    serve() {
-        _uv.listen_()
-    }
-    stop() {
-        _uv.stop_()
-    }
+    serve() { _uv.listen_() }
+    stop() { _uv.stop_() }
 }
 
 class Connection {
     construct new() {
         System.print("new connection")
         _uv = UVConnection.new(this)
+        _readBuffer = ""
+        _isClosed = false
     }
-    writeLn(data) {
-        _uv.write("%(data)\n")
-    }
+    isClosed { _isClosed }
+    writeLn(data) { _uv.write("%(data)\n") }
+    write(data) { _uv.write("%(data)") }
     uv_ { _uv }
-    close() {
-        _uv.close()
+    close() { 
+        _uv.close() 
+        _isClosed = true
+    }
+    // instantly returns the read buffer or null if there is nothing to read
+    read() { 
+        if (_readBuffer.isEmpty) return null 
+        var result = _readBuffer
+        _readBuffer = ""
+        return result
+    }
+    // reads data and waits to it if there isn't any
+    readWait() {
+        if (_readBuffer.isEmpty) {
+            _sleepingForRead = Fiber.current
+            Scheduler.runNextScheduled_()
+        }
+        return read()
+    }
+
+    // called by C
+    input_(data) {
+        System.print(("input_"))
+        _readBuffer = _readBuffer + data
+        if (_sleepingForRead) { 
+            var fiber = _sleepingForRead    
+            _sleepingForRead = null
+            Scheduler.resume_(fiber) 
+        }
     }
 }
 
@@ -56,9 +79,6 @@ class Connection {
 foreign class UVConnection {
     construct new(connectionWren) {
         System.print("new UVconnection")
-    }
-    test() {
-        System.print("UvConnection#test")
     }
     foreign write(str)
     foreign close()

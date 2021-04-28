@@ -12,6 +12,19 @@ struct sockaddr_in addr;
 static WrenHandle* ConnectionHandle;
 static WrenHandle* newConnectionHandle;
 
+WrenHandle* wrenInstantiate(WrenVM* vm, const char* module, const char* class, const char* fn) {
+    wrenGetVariable(vm, module, class, 0);
+    WrenHandle* h = wrenMakeCallHandle(vm, fn);
+    wrenCall(vm, h);
+    return wrenGetSlotHandle(vm,0);
+}
+
+void wrenDispatch(WrenVM* vm, const char* name) {
+    WrenHandle *handle = wrenMakeCallHandle(vm, name);
+    wrenCall(vm, handle);
+    wrenReleaseHandle(vm, handle);
+}
+
 
 void alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
     buf->base = (char*)malloc(suggested_size);
@@ -35,6 +48,13 @@ void echo_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf) {
         uv_write_t *req = (uv_write_t *) malloc(sizeof(uv_write_t));
         uv_buf_t wrbuf = uv_buf_init(buf->base, nread);
         uv_write(req, client, &wrbuf, 1, echo_write);
+
+
+        WrenVM* vm = getVM();
+        wrenEnsureSlots(vm,2);
+        wrenSetSlotHandle(vm,0,client->data); // connection
+        wrenSetSlotBytes(vm,1,buf->base, nread);
+        wrenDispatch(vm, "input_(_)");
     }
 
     if (buf->base) {
@@ -47,12 +67,8 @@ void uvConnectionAllocate(WrenVM* vm) {
     uv_tcp_t *client = (uv_tcp_t*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(uv_tcp_t));
 }
 
-WrenHandle* wrenInstantiate(WrenVM* vm, const char* module, const char* class, const char* fn) {
-    wrenGetVariable(vm, module, class, 0);
-    WrenHandle* h = wrenMakeCallHandle(vm, fn);
-    wrenCall(vm, h);
-    return wrenGetSlotHandle(vm,0);
-}
+
+WrenHandle* onConnect;
 
 void on_new_connection(uv_stream_t *server, int status) {
     if (status < 0) {
@@ -63,42 +79,22 @@ void on_new_connection(uv_stream_t *server, int status) {
     WrenVM* vm = getVM();
     
     wrenEnsureSlots(vm, 1);
-    // wrenGetVariable(vm, "socket", "Connection", 0);
-    // newConnectionHandle = wrenMakeCallHandle(vm, "new()");
-    // wrenCall(vm, newConnectionHandle);
-    // WrenHandle *conn = wrenGetSlotHandle(vm,0);
     WrenHandle *conn = wrenInstantiate(vm, "socket","Connection","new()");
+    wrenDispatch(vm, "uv_");
 
-    // int i = wrenGetSlotType(vm,0);
-    // fprintf(stderr, "%d",i);
-
-    WrenHandle *handle = wrenMakeCallHandle(vm, "uv_");
-    wrenCall(vm, handle);
-
-    // uv_tcp_t *client = (uv_tcp_t*)malloc(sizeof(uv_tcp_t));
     uv_tcp_t *client = (uv_tcp_t*)wrenGetSlotForeign(vm, 0);
     uv_tcp_init(getLoop(), client);
+    client->data = conn;
     if (uv_accept(server, (uv_stream_t*) client) == 0) {
 
         wrenEnsureSlots(vm, 3);
         // server.onConnect
         wrenSetSlotHandle(vm, 0, server->data);
-        WrenHandle *fn = wrenMakeCallHandle(vm, "onConnect");
-        wrenCall(vm, fn);
+        wrenDispatch(vm, "onConnect");
 
         // onConnect(new_connection)
-        fn = wrenMakeCallHandle(vm, "call(_)");
         wrenSetSlotHandle(vm, 1, conn);
-        wrenCall(vm, fn);
-        wrenReleaseHandle(vm,conn);
-
-        // handle = wrenMakeCallHandle(vm, "test()");
-        // wrenCall(vm, handle);
-
-        // uv_tcp_t *data = (uv_tcp_t*)wrenGetSlotForeign(vm, 0);
-        // memcpy(data, client, sizeof(uv_tcp_t));
-
-        // WrenHandle* handle = wrenMakeCallHandle(vm, "_" );
+        wrenDispatch(vm, "call(_)");
 
         uv_read_start((uv_stream_t*)client, alloc_buffer, echo_read);
     } else {
@@ -126,6 +122,7 @@ void uvConnectionWrite(WrenVM* vm) {
 void uvConnectionClose(WrenVM* vm) {
     uv_tcp_t *client = wrenGetSlotForeign(vm, 0);
     uv_close((uv_handle_t*) client, NULL);
+    wrenReleaseHandle(vm, client->data); // release connection reference
 }
 
 

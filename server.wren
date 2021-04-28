@@ -5,7 +5,11 @@ var server = TCPServer.new("127.0.0.1",7000)
 server.onConnect = Fn.new() { |connection|
     System.print("onConnect fired")
     connection.writeLn("Hello, bob")
-    connection.close()
+    var x 
+    while (x = connection.readWait()) {
+        System.print(x)
+    }
+    // connection.close()
 }
 server.serve()
 
