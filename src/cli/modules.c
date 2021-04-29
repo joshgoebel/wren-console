@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "modules.h"
@@ -69,6 +70,7 @@ extern void timerStartTimer(WrenVM* vm);
 // the end of the list.
 #define MAX_CLASSES_PER_MODULE 6
 
+#define MAX_MODULES_PER_LIBRARY 20
 #define MAX_LIBRARIES 20
 
 // Describes one foreign method in a class.
@@ -100,6 +102,13 @@ typedef struct
 
   ClassRegistry classes[MAX_CLASSES_PER_MODULE];
 } ModuleRegistry;
+
+typedef struct 
+{
+  const char* name;
+
+  ModuleRegistry* modules[MAX_MODULES_PER_LIBRARY];
+} LibraryRegistry;
 
 // To locate foreign classes and modules, we build a big directory for them in
 // static data. The nested collection initializer syntax gets pretty noisy, so
@@ -206,23 +215,24 @@ static ModuleRegistry coreCLImodules[] =
 #undef STATIC_METHOD
 #undef FINALIZER
 
-static ModuleRegistry* libraries[MAX_LIBRARIES] = {
-  coreCLImodules,
-  NULL
+static LibraryRegistry libraries[MAX_LIBRARIES] = {
+  { "core", coreCLImodules},
+  { NULL, NULL }
 };
-
 
 // Looks for a built-in module with [name].
 //
 // Returns the BuildInModule for it or NULL if not found.
 static ModuleRegistry* findModule(const char* name)
 {
-  for (int j = 0; libraries[j] != NULL; j++) {
-    ModuleRegistry* modules = libraries[0];
-    for (int i = 0; modules[i].name != NULL; i++) {
-      if (strcmp(name, modules[i].name) == 0) return &modules[i];
+  // for (int j = 0; libraries[j].name != NULL; j++) {
+    // fprintf(stdout, "lib: %s", libraries[j].name);
+    // ModuleRegistry* modules = libraries[j].modules;
+    for (int i = 0; coreCLImodules[i].name != NULL; i++) {
+      fprintf(stdout, "lib: %s\n", coreCLImodules[i].name);
+      if (strcmp(name, coreCLImodules[i].name) == 0) return &coreCLImodules[i];
     }
-  }
+  // }
 
   return NULL;
 }
