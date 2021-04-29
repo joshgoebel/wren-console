@@ -8,4 +8,8 @@
 // Stores the command line arguments passed to the CLI.
 void osSetArguments(int argc, const char* argv[]);
 
+// get current home directly 
+// (returns pointer to allocated ram must be released later)
+char* getHomeDirectory();
+
 #endif

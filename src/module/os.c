@@ -71,6 +71,13 @@ void processAllArguments(WrenVM* vm)
   }
 }
 
+char* getHomeDirectory() {
+  size_t sz = WREN_PATH_MAX;
+  char* buff = malloc(WREN_PATH_MAX);
+  uv_os_homedir(buff, &sz);
+  return buff;
+}
+
 void processCwd(WrenVM* vm)
 {
   wrenEnsureSlots(vm, 1);

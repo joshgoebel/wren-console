@@ -7,6 +7,11 @@
 #include "scheduler.h"
 #include "stat.h"
 #include "vm.h"
+#include "uv.h"
+#include "os.h"
+#include "modules.h"
+#include "resolver.h"
+#include "resolver.wren.inc"
 
 // The single VM instance that the CLI uses.
 static WrenVM* vm;
@@ -87,6 +92,20 @@ static Path* realPath(Path* path)
   return result;
 }
 
+
+WrenVM *resolver;
+
+
+void resolve(const char* importer, const char* module, const char* home) {
+  wrenEnsureSlots(resolver,4);
+  wrenGetVariable(resolver, "<repl>", "Module", 0);
+  WrenHandle *h = wrenMakeCallHandle(resolver,"resolve(_,_,_)");
+  wrenSetSlotString(resolver, 1, importer);
+  wrenSetSlotString(resolver, 2, module);
+  wrenSetSlotString(resolver, 3, home);
+  wrenCall(resolver,h);
+}
+
 // Starting at [rootDirectory], walks up containing directories looking for a
 // nearby "wren_modules" directory. If found, stores it in
 // [wrenModulesDirectory].
@@ -142,6 +161,10 @@ static void findModulesDirectory()
 static const char* resolveModule(WrenVM* vm, const char* importer,
                                  const char* module)
 {
+  char* home = getHomeDirectory();
+  resolve(importer, module, home);
+  free(home);
+
   // Logical import strings are used as-is and need no resolution.
   if (pathType(module) == PATH_TYPE_SIMPLE) return module;
   
@@ -265,6 +288,37 @@ static void reportError(WrenVM* vm, WrenErrorType type,
   }
 }
 
+
+static WrenForeignMethodFn bindResolverForeignMethod(WrenVM* vm, const char* module,
+    const char* className, bool isStatic, const char* signature)
+{
+  if (strcmp(signature,"existsSync(_)")==0) {
+    return fileExistsSync;
+  }
+  return NULL;
+}
+
+static void initResolverVM()
+{
+  WrenConfiguration config;
+  wrenInitConfiguration(&config);
+
+  config.bindForeignMethodFn = bindResolverForeignMethod;
+  // config.bindForeignClassFn = bindForeignClass;
+  // config.resolveModuleFn = resolveModule;
+  // config.loadModuleFn = readModule;
+  config.writeFn = write;
+  config.errorFn = reportError;
+
+  // Since we're running in a standalone process, be generous with memory.
+  config.initialHeapSize = 1024 * 1024 * 100;
+  resolver = wrenNewVM(&config);
+
+  // Initialize the event loop.
+  WrenInterpretResult result = wrenInterpret(resolver, "<repl>", resolverModuleSource);
+}
+
+
 static void initVM()
 {
   WrenConfiguration config;
@@ -303,6 +357,7 @@ static void freeVM()
 
 WrenInterpretResult runFile(const char* path)
 {
+  initResolverVM();
   char* source = readFile(path);
   if (source == NULL)
   {
@@ -359,6 +414,7 @@ WrenInterpretResult runFile(const char* path)
 
 WrenInterpretResult runRepl()
 {
+  initResolverVM();
   // This cast is safe since we don't try to free the string later.
   rootDirectory = (char*)".";
   initVM();

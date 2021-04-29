@@ -189,6 +189,9 @@
     <ClInclude Include="..\..\src\module\repl.h">
       <Filter>src\module</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\module\resolver.h">
+      <Filter>src\module</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\module\scheduler.h">
       <Filter>src\module</Filter>
     </ClInclude>
@@ -347,6 +350,9 @@
     <ClCompile Include="..\..\src\module\repl.c">
       <Filter>src\module</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\module\resolver.c">
+      <Filter>src\module</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\module\scheduler.c">
       <Filter>src\module</Filter>
     </ClCompile>
@@ -362,6 +368,9 @@
       <Filter>src\module</Filter>
     </None>
     <None Include="..\..\src\module\repl.wren.inc">
+      <Filter>src\module</Filter>
+    </None>
+    <None Include="..\..\src\module\resolver.wren.inc">
       <Filter>src\module</Filter>
     </None>
     <None Include="..\..\src\module\scheduler.wren.inc">
