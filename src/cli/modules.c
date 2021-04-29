@@ -107,7 +107,7 @@ typedef struct
 {
   const char* name;
 
-  ModuleRegistry* modules[MAX_MODULES_PER_LIBRARY];
+  ModuleRegistry (*modules)[MAX_MODULES_PER_LIBRARY];
 } LibraryRegistry;
 
 // To locate foreign classes and modules, we build a big directory for them in
@@ -204,6 +204,23 @@ static ModuleRegistry coreCLImodules[] =
   SENTINEL_MODULE
 };
 
+static const char* jimModuleSource = "";
+static const char* johnModuleSource = "";
+static ModuleRegistry moreModules[] =
+{
+  MODULE(jim)
+    CLASS(Boo)
+      STATIC_METHOD("captureMethods_()", schedulerCaptureMethods)
+    END_CLASS
+    CLASS(Bore)
+    END_CLASS
+  END_MODULE
+  MODULE(john)
+
+  END_MODULE
+  SENTINEL_MODULE
+};
+
 #undef SENTINEL_METHOD
 #undef SENTINEL_CLASS
 #undef SENTINEL_MODULE
@@ -216,7 +233,8 @@ static ModuleRegistry coreCLImodules[] =
 #undef FINALIZER
 
 static LibraryRegistry libraries[MAX_LIBRARIES] = {
-  { "core", coreCLImodules},
+  { "core", (ModuleRegistry (*)[MAX_MODULES_PER_LIBRARY])&coreCLImodules},
+  { "more", (ModuleRegistry (*)[MAX_MODULES_PER_LIBRARY])&moreModules},
   { NULL, NULL }
 };
 
@@ -225,19 +243,20 @@ static LibraryRegistry libraries[MAX_LIBRARIES] = {
 // Returns the BuildInModule for it or NULL if not found.
 static ModuleRegistry* findModule(const char* name)
 {
-  // for (int j = 0; libraries[j].name != NULL; j++) {
-    // fprintf(stdout, "lib: %s", libraries[j].name);
-    // ModuleRegistry* modules = libraries[j].modules;
-    for (int i = 0; coreCLImodules[i].name != NULL; i++) {
-      fprintf(stdout, "lib: %s\n", coreCLImodules[i].name);
-      if (strcmp(name, coreCLImodules[i].name) == 0) return &coreCLImodules[i];
+  fprintf(stdout, "looking for: %s\n", name);
+  for (int j = 0; libraries[j].name != NULL; j++) {
+    fprintf(stdout, " - lib: %s\n", libraries[j].name);
+    ModuleRegistry *modules = &(*libraries[j].modules)[0];
+    for (int i = 0; modules[i].name != NULL; i++) {
+      fprintf(stdout, "  - mod: %s\n", modules[i].name);
+      if (strcmp(name, modules[i].name) == 0) return &modules[i];
     }
-  // }
+  }
 
   return NULL;
 }
 
-// Looks for a class with [name] in [module].
+// Looks for a class with [name] in [module]. 
 static ClassRegistry* findClass(ModuleRegistry* module, const char* name)
 {
   for (int i = 0; module->classes[i].name != NULL; i++)
