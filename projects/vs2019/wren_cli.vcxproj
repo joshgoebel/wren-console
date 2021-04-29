@@ -330,6 +330,7 @@
     <ClInclude Include="..\..\src\module\io.h" />
     <ClInclude Include="..\..\src\module\os.h" />
     <ClInclude Include="..\..\src\module\repl.h" />
+    <ClInclude Include="..\..\src\module\resolver.h" />
     <ClInclude Include="..\..\src\module\scheduler.h" />
   </ItemGroup>
   <ItemGroup>
@@ -384,6 +385,7 @@
     <ClCompile Include="..\..\src\module\io.c" />
     <ClCompile Include="..\..\src\module\os.c" />
     <ClCompile Include="..\..\src\module\repl.c" />
+    <ClCompile Include="..\..\src\module\resolver.c" />
     <ClCompile Include="..\..\src\module\scheduler.c" />
     <ClCompile Include="..\..\src\module\timer.c">
       <ObjectFileName>$(IntDir)\timer1.obj</ObjectFileName>
@@ -393,6 +395,7 @@
     <None Include="..\..\src\module\io.wren.inc" />
     <None Include="..\..\src\module\os.wren.inc" />
     <None Include="..\..\src\module\repl.wren.inc" />
+    <None Include="..\..\src\module\resolver.wren.inc" />
     <None Include="..\..\src\module\scheduler.wren.inc" />
     <None Include="..\..\src\module\timer.wren.inc" />
   </ItemGroup>

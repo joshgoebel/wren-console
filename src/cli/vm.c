@@ -7,6 +7,9 @@
 #include "scheduler.h"
 #include "stat.h"
 #include "vm.h"
+#include "uv.h"
+#include "os.h"
+#include "modules.h"
 
 // The single VM instance that the CLI uses.
 static WrenVM* vm;
@@ -87,6 +90,7 @@ static Path* realPath(Path* path)
   return result;
 }
 
+
 // Starting at [rootDirectory], walks up containing directories looking for a
 // nearby "wren_modules" directory. If found, stores it in
 // [wrenModulesDirectory].
@@ -132,6 +136,25 @@ static void findModulesDirectory()
   pathFree(searchDirectory);
 }
 
+typedef ModuleRegistry* (*registryGiverFunc)();
+
+void loadSharedLibrary(char* libName) {
+    fprintf(stderr, "Found a library: %s\n", libName);
+
+    uv_lib_t *lib = (uv_lib_t*) malloc(sizeof(uv_lib_t));
+    // fprintf(stderr, "importing TIME OH BOY");
+    int r = uv_dlopen("lib/libwren_essentials.dylib", lib);
+    if (r !=0) {
+      fprintf(stderr, "error with dlopen");
+    }
+    registryGiverFunc registryGiver;
+    if (uv_dlsym(lib, "returnRegistry", (void **) &registryGiver)) {
+        fprintf(stderr, "dlsym error: %s\n", uv_dlerror(lib));
+    }
+    ModuleRegistry* m = registryGiver();
+    registerLibrary(libName, m);
+}
+
 // Applies the CLI's import resolution policy. The rules are:
 //
 // * If [module] starts with "./" or "../", it is a relative import, relative
@@ -140,21 +163,38 @@ static void findModulesDirectory()
 //
 //   For example, importing "./a/./b/../c" from "./d/e/f" gives you "./d/e/a/c".
 static const char* resolveModule(WrenVM* vm, const char* importer,
-                                 const char* module)
+                                 const char* moduleIn)
 {
+  char *module = malloc(strlen(moduleIn));
+  strcpy(module, moduleIn);
+
+  if (pathIncludesLibrary(module)) {
+    // this is ugly but how to do it nicer?
+    char *libName = malloc(strlen(module));
+    strcpy(libName, module);
+    char *colon = strchr(libName, ':');
+    strcpy(module, colon+1);
+    *colon = '\0';
+    loadSharedLibrary(libName);
+    // free(libName);
+  }
+
+  fprintf(stderr,"\nC: resolveModule(%s, importer: %s)\n", module, importer);
   // Logical import strings are used as-is and need no resolution.
-  if (pathType(module) == PATH_TYPE_SIMPLE) return module;
+  if (pathType(module) == PATH_TYPE_SIMPLE) {
+    return module;
+  }
   
   // Get the directory containing the importing module.
   Path* path = pathNew(importer);
   pathDirName(path);
-  
+
   // Add the relative import path.
   pathJoin(path, module);
   
   pathNormalize(path);
   char* resolved = pathToString(path);
-  
+
   pathFree(path);
   return resolved;
 }
@@ -194,6 +234,7 @@ static WrenLoadModuleResult loadModule(WrenVM* vm, const char* module)
   
   // Add a ".wren" file extension.
   pathAppendString(filePath, ".wren");
+
 
   result.onComplete = loadModuleComplete;
   result.source = readFile(filePath->chars);
