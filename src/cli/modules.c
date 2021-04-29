@@ -69,6 +69,8 @@ extern void timerStartTimer(WrenVM* vm);
 // the end of the list.
 #define MAX_CLASSES_PER_MODULE 6
 
+#define MAX_LIBRARIES 20
+
 // Describes one foreign method in a class.
 typedef struct
 {
@@ -118,7 +120,7 @@ typedef struct
 #define FINALIZE(fn) { true, "<finalize>", (WrenForeignMethodFn)fn },
 
 // The array of built-in modules.
-static ModuleRegistry modules[] =
+static ModuleRegistry coreCLImodules[] =
 {
   MODULE(io)
     CLASS(Directory)
@@ -204,14 +206,22 @@ static ModuleRegistry modules[] =
 #undef STATIC_METHOD
 #undef FINALIZER
 
+static ModuleRegistry* libraries[MAX_LIBRARIES] = {
+  coreCLImodules,
+  NULL
+};
+
+
 // Looks for a built-in module with [name].
 //
 // Returns the BuildInModule for it or NULL if not found.
 static ModuleRegistry* findModule(const char* name)
 {
-  for (int i = 0; modules[i].name != NULL; i++)
-  {
-    if (strcmp(name, modules[i].name) == 0) return &modules[i];
+  for (int j = 0; libraries[j] != NULL; j++) {
+    ModuleRegistry* modules = libraries[0];
+    for (int i = 0; modules[i].name != NULL; i++) {
+      if (strcmp(name, modules[i].name) == 0) return &modules[i];
+    }
   }
 
   return NULL;
