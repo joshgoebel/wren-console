@@ -243,12 +243,12 @@ static LibraryRegistry libraries[MAX_LIBRARIES] = {
 // Returns the BuildInModule for it or NULL if not found.
 static ModuleRegistry* findModule(const char* name)
 {
-  fprintf(stdout, "looking for: %s\n", name);
+  // fprintf(stdout, "looking for: %s\n", name);
   for (int j = 0; libraries[j].name != NULL; j++) {
-    fprintf(stdout, " - lib: %s\n", libraries[j].name);
+    // fprintf(stdout, " - lib: %s\n", libraries[j].name);
     ModuleRegistry *modules = &(*libraries[j].modules)[0];
     for (int i = 0; modules[i].name != NULL; i++) {
-      fprintf(stdout, "  - mod: %s\n", modules[i].name);
+      // fprintf(stdout, "  - mod: %s\n", modules[i].name);
       if (strcmp(name, modules[i].name) == 0) return &modules[i];
     }
   }

@@ -161,22 +161,27 @@ static void findModulesDirectory()
 static const char* resolveModule(WrenVM* vm, const char* importer,
                                  const char* module)
 {
-  char* home = getHomeDirectory();
-  resolve(importer, module, home);
-  free(home);
 
+  fprintf(stderr,"\nC: resolveModule(%s, importer: %s)\n", module, importer);
   // Logical import strings are used as-is and need no resolution.
-  if (pathType(module) == PATH_TYPE_SIMPLE) return module;
+  if (pathType(module) == PATH_TYPE_SIMPLE) {
+    return module;
+  }
   
   // Get the directory containing the importing module.
   Path* path = pathNew(importer);
   pathDirName(path);
+
+  // pathAppendString(path, "~~");
+  // pathAppendString(path,module);
   
   // Add the relative import path.
   pathJoin(path, module);
   
   pathNormalize(path);
   char* resolved = pathToString(path);
+
+  fprintf(stderr, "resolved to %s\n", resolved);
   
   pathFree(path);
   return resolved;
@@ -189,34 +194,52 @@ static const char* resolveModule(WrenVM* vm, const char* importer,
 // module was found but could not be read.
 static WrenLoadModuleResult loadModule(WrenVM* vm, const char* module)
 {
-  WrenLoadModuleResult result = {0};
-  Path* filePath;
-  if (pathType(module) == PATH_TYPE_SIMPLE)
-  {
-    // If there is no "wren_modules" directory, then the only logical imports
-    // we can handle are built-in ones. Let the VM try to handle it.
-    findModulesDirectory();
-    if (wrenModulesDirectory == NULL) return loadBuiltInModule(module);
-    
-    // TODO: Should we explicitly check for the existence of the module's base
-    // directory inside "wren_modules" here?
-    
-    // Look up the module in "wren_modules".
-    filePath = pathNew(wrenModulesDirectory->chars);
-    pathJoin(filePath, module);
-    
-    // If the module is a single bare name, treat it as a module with the same
-    // name inside the package. So "foo" means "foo/foo".
-    if (strchr(module, '/') == NULL) pathJoin(filePath, module);
-  }
-  else
-  {
-    // The module path is already a file path.
-    filePath = pathNew(module);
-  }
+
   
-  // Add a ".wren" file extension.
-  pathAppendString(filePath, ".wren");
+  Path* searchDirectory = pathNew(".");
+  Path* lastPath = realPath(searchDirectory);
+
+  char* home = getHomeDirectory();
+  resolve(lastPath->chars, module, home);
+  free(home);
+
+  const char* path = wrenGetSlotString(resolver, 0);
+  if (wrenGetSlotType(resolver, 0) == WREN_TYPE_NULL) {
+    return loadBuiltInModule(module);
+  }
+
+  if (path==NULL) {
+    return loadBuiltInModule(module);
+  }
+
+  WrenLoadModuleResult result = {0};
+  Path* filePath = pathNew(path);
+  // if (pathType(module) == PATH_TYPE_SIMPLE)
+  // {
+  //   // If there is no "wren_modules" directory, then the only logical imports
+  //   // we can handle are built-in ones. Let the VM try to handle it.
+  //   findModulesDirectory();
+  //   if (wrenModulesDirectory == NULL) return loadBuiltInModule(module);
+    
+  //   // TODO: Should we explicitly check for the existence of the module's base
+  //   // directory inside "wren_modules" here?
+    
+  //   // Look up the module in "wren_modules".
+  //   filePath = pathNew(wrenModulesDirectory->chars);
+  //   pathJoin(filePath, module);
+    
+  //   // If the module is a single bare name, treat it as a module with the same
+  //   // name inside the package. So "foo" means "foo/foo".
+  //   if (strchr(module, '/') == NULL) pathJoin(filePath, module);
+  // }
+  // else
+  // {
+  //   // The module path is already a file path.
+  //   filePath = pathNew(module);
+  // }
+  
+  // // Add a ".wren" file extension.
+  // pathAppendString(filePath, ".wren");
 
   result.onComplete = loadModuleComplete;
   result.source = readFile(filePath->chars);
