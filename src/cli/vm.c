@@ -158,7 +158,7 @@ void loadSharedLibrary(char* libName) {
 
     uv_lib_t *lib = (uv_lib_t*) malloc(sizeof(uv_lib_t));
     // fprintf(stderr, "importing TIME OH BOY");
-    int r = uv_dlopen("wren-essentials/lib/libwren_essentials.dylib", lib);
+    int r = uv_dlopen("lib/libwren_essentials.dylib", lib);
     if (r !=0) {
       fprintf(stderr, "error with dlopen");
     }
