@@ -7,7 +7,20 @@ class Scheduler {
     })
   }
 
-  static requestNext_() { __scheduled.insert(0, Fiber.current )}
+  static waitForOthers() {
+    __scheduled.add(Fiber.current)
+    Fiber.suspend()
+  }
+  static runAsync(callable) {
+    __scheduled.add(Fiber.new {
+      callable.call()
+      runNextScheduled_()
+    })
+    __scheduled.add(Fiber.current)
+    runNextScheduled_()
+  }
+
+  // static requestNext_() { __scheduled.insert(0, Fiber.current )}
 
   // Called by native code.
   static resume_(fiber) { 
