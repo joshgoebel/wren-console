@@ -97,6 +97,11 @@ static size_t absolutePrefixLength(const char* path)
   return 0;
 }
 
+bool pathIncludesLibrary(char* path) {
+  char *found = strchr(path, ':');
+  return found != NULL;
+}
+
 PathType pathType(const char* path)
 {
   if (absolutePrefixLength(path) > 0) return PATH_TYPE_ABSOLUTE;

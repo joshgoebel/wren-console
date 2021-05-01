@@ -9,8 +9,12 @@ class Module {
         _module = module
         _home = home
     }
+    // static log(x) { System.print(x) }
+    // log(x) { System.print(x) }
+    log(x) {}
+    static log(x) {}
     static resolve(cwd, module, home) {
-        System.print("WREN Resolve: %(module) in %(cwd)")
+        log("WREN Resolve: %(module) in %(cwd)")
 
         var res = Module.new(cwd, module, home)
         return res.relativeResolver || 
@@ -20,11 +24,11 @@ class Module {
     findWrenModules() {
         if (WREN_MODULES != null) return WREN_MODULES
 
-        System.print("SEARCHING for wren_modules")
+        log("SEARCHING for wren_modules")
         var pieces = _cwd.split("/")
         for (i in (pieces.count-1)..1) {
             var path = pieces[0..i].join("/") + "/wren_module"
-            System.print(path)
+            log(path)
             if (File.existsSync(path)) {
                 WREN_MODULES = path
                 return path
@@ -32,7 +36,7 @@ class Module {
         }
     }
     wrenModulesResolver {
-        System.print("wren_modules resolver")
+        log("wren_modules resolver")
         var modules = findWrenModules()
         if (modules == null) return null 
 
@@ -41,7 +45,7 @@ class Module {
             Path.join([modules,_module,_module + ".wren"])
         ]
         for (x in locations) {
-            System.print(x)
+            log(x)
             if (File.existsSync(x)) return x
         }     
 
@@ -54,7 +58,7 @@ class Module {
             Path.join(["%(_module)/%(_module).wren"])
         ]
         for (x in locations) {
-            System.print(x)
+            log(x)
             if (File.existsSync(x)) return x
         }        
     }
@@ -64,7 +68,7 @@ class Module {
             Path.join([_home,".wren",_module + ".wren"])
         ]
         for (x in locations) {
-            System.print(x)
+            log(x)
             if (File.existsSync(x)) return x
         }        
     }

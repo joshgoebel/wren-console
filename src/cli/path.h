@@ -44,6 +44,8 @@ void pathDirName(Path* path);
 // Strips off the file extension from the last component of the path.
 void pathRemoveExtension(Path* path);
 
+bool pathIncludesLibrary(char* path);
+
 // Appends [string] to [path].
 void pathJoin(Path* path, const char* string);
 
