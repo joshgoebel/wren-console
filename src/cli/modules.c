@@ -189,7 +189,7 @@ static ModuleRegistry modules[] =
   END_MODULE
   MODULE(timer)
     CLASS(Timer)
-      STATIC_METHOD("startTimer_(_,_)", timerStartTimer)
+      STATIC_METHOD("startTimer_(_)", timerStartTimer)
     END_CLASS
   END_MODULE
 
