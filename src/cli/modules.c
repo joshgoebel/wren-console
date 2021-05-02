@@ -51,6 +51,7 @@ extern void stdinReadStart(WrenVM* vm);
 extern void stdinReadStop(WrenVM* vm);
 extern void stdoutFlush(WrenVM* vm);
 extern void schedulerCaptureMethods(WrenVM* vm);
+extern void schedulerPreserveFiberCurrent_(WrenVM* vm);
 extern void timerStartTimer(WrenVM* vm);
 
 // The maximum number of foreign methods a single class defines. Ideally, we
@@ -185,6 +186,7 @@ static ModuleRegistry modules[] =
   MODULE(scheduler)
     CLASS(Scheduler)
       STATIC_METHOD("captureMethods_()", schedulerCaptureMethods)
+      STATIC_METHOD("preserveFiberCurrent_(_)",schedulerPreserveFiberCurrent_)
     END_CLASS
   END_MODULE
   MODULE(timer)

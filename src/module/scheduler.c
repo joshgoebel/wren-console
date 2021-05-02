@@ -16,6 +16,7 @@ static WrenHandle* schedulerClass;
 static WrenHandle* resume1;
 static WrenHandle* resume2;
 static WrenHandle* resumeError;
+static WrenHandle* fiberCurrent;
 
 static void resume(WrenHandle* method)
 {
@@ -57,6 +58,15 @@ void schedulerResume(WrenHandle* fiber, bool hasArgument)
 void schedulerFinishResume()
 {
   resume(resume2);
+}
+
+WrenHandle* getFiberCurrent(WrenVM* vm) {
+  return fiberCurrent;
+  // return wrenMakeHandle(vm, OBJ_VAL(vm->fiber));
+}
+
+void schedulerPreserveFiberCurrent_(WrenVM* vm) {
+  fiberCurrent = wrenGetSlotHandle(vm, 1);
 }
 
 void schedulerResumeError(WrenHandle* fiber, const char* error)

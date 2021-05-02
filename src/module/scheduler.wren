@@ -15,6 +15,7 @@ class Scheduler {
 
   // wait for a method to finish that has a callback on the C side
   static await_(fn) {
+    preserveFiberCurrent_(Fiber.current)
     fn.call()
     return Scheduler.runNextScheduled_()
   }
@@ -27,6 +28,7 @@ class Scheduler {
     }
   }
 
+  foreign static preserveFiberCurrent_(fiber)
   foreign static captureMethods_()
 }
 

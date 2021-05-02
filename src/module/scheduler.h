@@ -17,4 +17,6 @@ void schedulerResumeError(WrenHandle* fiber, const char* error);
 
 void schedulerShutdown();
 
+WrenHandle* getFiberCurrent(WrenVM* vm);
+
 #endif
