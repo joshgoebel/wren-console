@@ -95,7 +95,7 @@ jobs:
           # ./bin/wrenc test/unit/path_test.wren
           # python3 ./util/test.py
           mkdir -p dist/bin
-          cp LICENSE dist
+          cp LICENSE dist/LICENSE.txt
           cp README.md dist
           cp bin/wrenc.exe dist/bin
           7z a -mm=deflate -mx=9 wren-console.zip dist
@@ -152,7 +152,7 @@ jobs:
           files: |
             ./bin/wrenc
             ./README.md
-            ./LICENSE
+            ./LICENSE.txt
           outPath: wren-console-${{ env.RELEASE_VERSION }}-mac.tar.gz
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
