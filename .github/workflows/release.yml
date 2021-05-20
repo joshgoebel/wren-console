@@ -22,6 +22,11 @@ jobs:
           git clone https://github.com/joshgoebel/wren-essentials.git
           cd ..
           make -j8 -C projects/make/
+          mkdir wren_modules
+          cd wren_modules
+          git clone https://github.com/RobLoach/wren-assert.git
+          git clone https://github.com/joshgoebel/wren-testie.git
+          cd ..
           python3 ./util/test.py
           mkdir -p dist/bin
           cp LICENSE dist
