@@ -27,8 +27,9 @@ jobs:
           echo "PRERELEASE=true" >> $GITHUB_ENV
       - name: Checkout repository
         uses: actions/checkout@v2
-        repository: https://github.com/joshgoebel/wren-essentials.git
-        path: deps/wren-essentials
+        with:
+          repository: https://github.com/joshgoebel/wren-essentials.git
+          path: deps/wren-essentials
       - name: "Build & test"
         run: |
           make -j8 -C projects/make/
