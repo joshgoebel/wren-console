@@ -28,7 +28,7 @@ jobs:
           git clone https://github.com/joshgoebel/wren-testie.git
           cd ..
           # ./bin/wrenc test/unit/path_test.wren
-          # python3 ./util/test.py
+            # python3 ./util/test.py
           mkdir -p dist/bin
           cp LICENSE dist
           cp README.md dist
@@ -40,7 +40,9 @@ jobs:
           command: c
           cwd: ./dist
           files: |
-            ./*
+            ./bin/wrenc
+            ./README.md
+            ./LICENSE
           outPath: wren-console-${{ env.RELEASE_VERSION }}.tar.gz
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
