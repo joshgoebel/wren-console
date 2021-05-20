@@ -117,6 +117,8 @@ jobs:
     if: ${{ true }}  
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
       - name: Copy environment from our release runner
         run: |
           echo "RELEASE_VERSION=${{ needs.tagged-release.outputs.release_version }}" >> $GITHUB_ENV
