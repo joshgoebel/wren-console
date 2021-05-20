@@ -1,5 +1,5 @@
 ---
-name: "tagged-release"
+name: "Release"
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   tagged-release:
-    name: "Tagged Release"
+    name: "New Release (Linux)"
     runs-on: "ubuntu-latest"
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -16,21 +16,29 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Set env
-        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Set env & pre-setup
+        run: |
+          echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+          mkdir wren_modules
+          echo "PRERELEASE=false" >> $GITHUB_ENV
+        # determine if we are a pre-release or not
+      - if: contains(github.ref, 'beta') || contains(github.ref, 'test')
+        run: |
+          echo "PRERELEASE=true" >> $GITHUB_ENV
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        repository: https://github.com/joshgoebel/wren-essentials.git
+        path: deps/wren-essentials
       - name: "Build & test"
         run: |
-          cd deps
-          git clone https://github.com/joshgoebel/wren-essentials.git
-          cd ..
           make -j8 -C projects/make/
-          mkdir wren_modules
           cd wren_modules
           git clone https://github.com/RobLoach/wren-assert.git
           git clone https://github.com/joshgoebel/wren-testie.git
           cd ..
-          # ./bin/wrenc test/unit/path_test.wren
-          # python3 ./util/test.py
+          python3 ./util/test.py
+      - name: "Build distributable"
+        run: |
           mkdir -p dist/bin
           cp LICENSE dist
           cp README.md dist
@@ -51,13 +59,14 @@ jobs:
         with:
           automatic_release_tag: "${{ env.RELEASE_VERSION }}"
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: true
+          prerelease: "${{ env.PRERELEASE }}"
           files: |
             wren-console-${{ env.RELEASE_VERSION }}-linux.tar.gz
 
   windows-assets:
     needs: tagged-release
     runs-on: windows-2019
+    if: ${{ false }}  # disable for now
 
     steps:
       - name: Checkout repository
@@ -75,7 +84,6 @@ jobs:
           .\MSBuild.exe $Env:GITHUB_WORKSPACE\projects\vs2019\wrenc.vcxproj /p:Configuration="Release 64bit" /p:Platform="x64"
           cd $Env:GITHUB_WORKSPACE
           dir $Env:GITHUB_WORKSPACE
-          make -j8 -C projects/make.mac/
           mkdir wren_modules
           cd wren_modules
           git clone --depth 1 https://github.com/RobLoach/wren-assert.git
@@ -146,4 +154,4 @@ jobs:
           upload_url: ${{ needs.tagged-release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
           asset_path: ./wren-console-${{ env.RELEASE_VERSION }}-mac.tar.gz
           asset_name: wren-console-${{ env.RELEASE_VERSION }}-mac.tar.gz
-          asset_content_type: application/zip
+          asset_content_type: application/gzip
