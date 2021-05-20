@@ -81,6 +81,10 @@ $ wrenc
 
 ## Extended Library Support
 
+### `os` module
+
+- `Process.exit(num)` - exit immediately with the given error code
+
 ### `essentials` module
 
 Wren Console includes the [Wren Essentials](https://github.com/joshgoebel/wren-essentials) library built right into the binary.
@@ -94,7 +98,7 @@ Wren Console includes the [Wren Essentials](https://github.com/joshgoebel/wren-e
 
 ## To build Wren Console
 
-### Pre-requisites
+**Pre-requisites**
 
 - Git clone the `wren-essentials` project ([link](https://github.com/joshgoebel/wren-essentials)) into `deps` (TODO: vendor?)
 

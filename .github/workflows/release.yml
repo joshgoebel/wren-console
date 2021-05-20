@@ -1,0 +1,42 @@
+---
+name: "tagged-release"
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  tagged-release:
+    name: "Tagged Release"
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: "Build & test"
+        run: |
+          make -j8 -C projects/make/
+          python3 ./util/test.py
+          mkdir -p dist/bin
+          cp LICENSE dist
+          cp README.md dist
+          cp bin/wrenc dist/bin
+      - name: Compress action step
+        uses: master-atul/tar-action@v1.0.2
+        id: compress
+        with:
+          command: c
+          cwd: ./dist
+          files: |
+            ./*
+          outPath: wren-console-${{ env.RELEASE_VERSION }}.tar.gz
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: true
+          # files: |
+            # LICENSE.txt
+            # *.jar
