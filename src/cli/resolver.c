@@ -4,6 +4,7 @@
 #include "vm.h"
 #include "_wren.inc"
 #include "modules.h"
+#include <string.h>
 
 WrenVM *resolver;
 
