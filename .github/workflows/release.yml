@@ -28,7 +28,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          repository: https://github.com/joshgoebel/wren-essentials.git
+          repository: joshgoebel/wren-essentials
           path: deps/wren-essentials
       - name: "Build & test"
         run: |
