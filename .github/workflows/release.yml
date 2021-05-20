@@ -70,7 +70,7 @@ jobs:
           cd deps
           git clone https://github.com/joshgoebel/wren-essentials.git
           cd ..
-          make -j8 -C projects/make/
+          make -j8 -C projects/make.mac/
           mkdir wren_modules
           cd wren_modules
           git clone https://github.com/RobLoach/wren-assert.git
