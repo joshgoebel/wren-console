@@ -27,8 +27,8 @@ jobs:
           git clone https://github.com/RobLoach/wren-assert.git
           git clone https://github.com/joshgoebel/wren-testie.git
           cd ..
-          ./bin/wrenc test/unit/path_test.wren
-          python3 ./util/test.py
+#          ./bin/wrenc test/unit/path_test.wren
+#          python3 ./util/test.py
           mkdir -p dist/bin
           cp LICENSE dist
           cp README.md dist
