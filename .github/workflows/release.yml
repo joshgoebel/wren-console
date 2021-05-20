@@ -87,25 +87,20 @@ jobs:
           cp LICENSE dist
           cp README.md dist
           cp bin/wrenc.exe dist/bin
-      - name: Compress action step
-        uses: master-atul/tar-action@v1.0.2
-        id: compress
+      - name: Archive Release
+        uses: thedoctor0/zip-release@master
         with:
-          command: c
-          cwd: ./dist
-          files: |
-            ./bin/wrenc.exe
-            ./README.md
-            ./LICENSE
-          outPath: wren-console-${{ env.RELEASE_VERSION }}-windows.tar.gz
+          filename: "wren-console-${{ env.RELEASE_VERSION }}-windows.zip"
+          path: "dist"
+          exclusions: '*.git*'
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.tagged-release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./wren-console-${{ env.RELEASE_VERSION }}-windows.tar.gz
-          asset_name: wren-console-${{ env.RELEASE_VERSION }}-windows.tar.gz
+          asset_path: ./wren-console-${{ env.RELEASE_VERSION }}-windows.zip
+          asset_name: wren-console-${{ env.RELEASE_VERSION }}-windows.zip
           asset_content_type: application/zip
 
   mac-assets:
