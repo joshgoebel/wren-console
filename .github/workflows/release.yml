@@ -46,6 +46,7 @@ jobs:
           outPath: wren-console-${{ env.RELEASE_VERSION }}.tar.gz
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
+          automatic_release_tag: "${{ env.RELEASE_VERSION }}"
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: true
           files: |
