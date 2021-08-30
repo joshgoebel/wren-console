@@ -109,7 +109,7 @@ void processExit(WrenVM* vm) {
   uv_stop(getLoop());
 }
 
-// chdir_(dir)
+// chdir(dir)
 void processChdir(WrenVM* vm)
 {
   wrenEnsureSlots(vm, 1);
