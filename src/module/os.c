@@ -112,7 +112,7 @@ void processExit(WrenVM* vm) {
 // chdir(dir)
 void processChdir(WrenVM* vm)
 {
-  wrenEnsureSlots(vm, 1);
+  wrenEnsureSlots(vm, 2);
   char* dir = cli_strdup(wrenGetSlotString(vm, 1));
   int err = uv_chdir(dir);
   if (err)
