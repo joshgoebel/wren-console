@@ -54,6 +54,7 @@ static const char* osModuleSource =
 "  foreign static exec_(cmd, args, cwd, env, fiber)\n"
 "  foreign static allArguments\n"
 "  foreign static cwd\n"
+"  foreign static chdir(dir)\n"
 "  foreign static pid\n"
 "  foreign static ppid\n"
 "  foreign static version\n"

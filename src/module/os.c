@@ -109,6 +109,20 @@ void processExit(WrenVM* vm) {
   uv_stop(getLoop());
 }
 
+// chdir_(dir)
+void processChdir(WrenVM* vm)
+{
+  wrenEnsureSlots(vm, 1);
+  char* dir = cli_strdup(wrenGetSlotString(vm, 1));
+  int err = uv_chdir(dir);
+  if (err)
+  {
+    wrenSetSlotString(vm, 0, "Cannot change directory.");
+    wrenAbortFiber(vm, 0);
+    return;
+  }
+}
+
 void processCwd(WrenVM* vm)
 {
   wrenEnsureSlots(vm, 1);

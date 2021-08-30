@@ -50,6 +50,7 @@ class Process {
   foreign static exec_(cmd, args, cwd, env, fiber)
   foreign static allArguments
   foreign static cwd
+  foreign static chdir(dir)
   foreign static pid
   foreign static ppid
   foreign static version
