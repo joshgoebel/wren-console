@@ -48,8 +48,13 @@ class Process {
   }
 
   static chdir(dir) {
-    if (!(dir is String)) Fiber.abort("Dir must be a string.")
+    ensureString_(dir, "directory")
     chdir_(dir)
+  }
+
+  // TODO: Copied from `io`. Figure out good way to share this.
+  static ensureString_(s, name) {
+    if (!(s is String)) Fiber.abort("%(name) must be a string.")
   }
 
   foreign static exec_(cmd, args, cwd, env, fiber)
