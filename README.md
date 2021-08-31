@@ -47,34 +47,36 @@ Thousands of helpful mentors, hundreds of thousands of fellow students to learn 
 
 ## Usage Examples
 
-Run a script from the console:
+### Start up an interactive REPL session
+
+```sh
+$ wrenc
+```
+
+### Run a script from the console
 
 ```sh
 $ wrenc ./path_to_script.wren
 ```
 
-Evaluate code directly:
+### Evaluate code directly
 
 ```sh
-$ wrenc -e 'System.print("Hello world")'
+$ wrenc -e 'System.print("Hello World!")'
 ```
 
-Embed inside shell scripting with heredocs:
+### Executable wren scripts
 
+Use the typical "shebang" for executable wren scripts:
 ```sh
-#!/bin/sh
-wrenc /dev/fd/5 < input.txt 5<< 'EOF'
+#!/usr/bin/env wrenc
 import "io" for Stdin
-System.print(Stdin.readLine())
-EOF
-
+System.print("Enter your name:")
+var name = Stdin.readLine().trim()
+System.print("Hello %(name.isEmpty ? "World" : name)!")
 ```
-
-Start up an interactive REPL session:
-
-```sh
-$ wrenc
-```
+(Note: for Linux folk, this is documented in the
+[`execve(2)` man page](https://manpage.me/index.cgi?apropos=0&q=execve&sektion=2&manpath=Debian+8.1.0&arch=default&format=html).)
 
 ---
 
