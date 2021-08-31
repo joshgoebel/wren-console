@@ -78,6 +78,20 @@ System.print("Hello %(name.isEmpty ? "World" : name)!")
 (Note: for Linux folk, this is documented in the
 [`execve(2)` man page](https://manpage.me/index.cgi?apropos=0&q=execve&sektion=2&manpath=Debian+8.1.0&arch=default&format=html).)
 
+### Embed wren code in a shell script
+
+This makes smart use of file descriptors and the Linux /dev file system to
+read the code from a here-document while also keeping standard input
+available for wren:
+
+```sh
+#!/bin/sh
+wrenc /dev/fd/5 < input.txt 5<< 'EOF'
+import "io" for Stdin
+System.print(Stdin.readLine())
+EOF
+```
+
 ---
 
 ## Extended Library Support
