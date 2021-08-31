@@ -151,7 +151,7 @@ static ModuleRegistry coreCLImodules[] =
     END_CLASS
     CLASS(Process)
       STATIC_METHOD("allArguments", processAllArguments)
-      STATIC_METHOD("chdir(_)", processChdir)
+      STATIC_METHOD("chdir_(_)", processChdir)
       STATIC_METHOD("cwd", processCwd)
       STATIC_METHOD("pid", processPid)
       STATIC_METHOD("ppid", processPpid)
