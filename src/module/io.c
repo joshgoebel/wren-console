@@ -424,6 +424,13 @@ void fileWriteBytes(WrenVM* vm)
               fileWriteBytesCallback);
 }
 
+void statAllocate(WrenVM* vm) {
+
+}
+void statFinalize(void* data) {
+
+}
+
 void statPath(WrenVM* vm)
 {
   const char* path = wrenGetSlotString(vm, 1);
