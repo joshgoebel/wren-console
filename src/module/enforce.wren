@@ -21,6 +21,10 @@ class Enforce {
     if (!(v is Num) || !v.isInteger) error("Expected integer for '%(name)'")
   }
 
+  static positiveNum(v, name) {
+    if (!(v is Num) || v < 0) error("Expected positive integer for '%(name)'")
+  }
+
   static positiveInt(v, name) {
     if (!(v is Num) || !v.isInteger || v < 0) error("Expected positive integer for '%(name)'")
   }
