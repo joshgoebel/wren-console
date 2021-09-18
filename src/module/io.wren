@@ -132,6 +132,16 @@ foreign class File {
     return path[i+1..-1]
   }
 
+  static basename(path, suffixes) {
+    var basename = basename(path)
+    for (suffix in suffixes) {
+      if (basename.endsWith(suffix)) {
+        return basename[0..(-1 - suffix.count)]
+      }
+    }
+    return basename
+  }
+
   static size(path) {
     Ensure.string(path, "path")
     return Scheduler.await_ { sizePath_(path, Fiber.current) }
