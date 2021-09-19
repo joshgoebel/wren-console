@@ -23,10 +23,9 @@ tests.add({"input": "///foo//bar", "expected": "///foo"})  // 17
 
 if (Platform.isWindows) {
   tests = tests.map {|t|
-    return {
-      "input": t["input"].replace("/", """\\"""),
-      "expected": t["expected"].replace("/", """\\"""),
-    }
+    t["input"]    = t["input"].replace("/", "\\\\")
+    t["expected"] = t["expected"].replace("/", "\\")
+    return t
   }.toList
 }
 
