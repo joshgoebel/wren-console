@@ -27,7 +27,7 @@ class Runtime {
   //   Runtime.assertVersion("0.3") // ok
   static assertVersion(desiredMinimalVersion) {
     if (versionToNumber_(Runtime.VERSION) < versionToNumber_(desiredMinimalVersion)) {
-      Fiber.abort("wren-console version %(desiredMinimalVersion) or higher required.\nYou have %(Runtime.VERSION).")
+      Fiber.abort("wren-console version %(desiredMinimalVersion) or higher required.")
     }
   }
   static details {

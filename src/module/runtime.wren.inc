@@ -31,7 +31,7 @@ static const char* runtimeModuleSource =
 "  //   Runtime.assertVersion(\"0.3\") // ok\n"
 "  static assertVersion(desiredMinimalVersion) {\n"
 "    if (versionToNumber_(Runtime.VERSION) < versionToNumber_(desiredMinimalVersion)) {\n"
-"      Fiber.abort(\"wren-console version %(desiredMinimalVersion) or higher required.\\nYou have %(Runtime.VERSION).\")\n"
+"      Fiber.abort(\"wren-console version %(desiredMinimalVersion) or higher required.\")\n"
 "    }\n"
 "  }\n"
 "  static details {\n"
