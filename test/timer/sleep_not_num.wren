@@ -1,3 +1,3 @@
 import "timer" for Timer
 
-Timer.sleep("wat") // expect runtime error: Expected positive integer for 'milliseconds'
+Timer.sleep("wat") // expect runtime error: Expected positive integer argument for 'milliseconds'
