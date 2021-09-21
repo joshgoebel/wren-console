@@ -25,7 +25,7 @@ class Enforce {
   }
 
   static positiveNum(v, name) {
-    if (!(v is Num) || v < 0) argumentError("Expected positive integer (Num) argument for '%(name)'")
+    if (!(v is Num) || v < 0) argumentError("Expected positive 'Num' argument for '%(name)'")
   }
 
   static positiveInt(v, name) {

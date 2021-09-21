@@ -29,7 +29,7 @@ static const char* enforceModuleSource =
 "  }\n"
 "\n"
 "  static positiveNum(v, name) {\n"
-"    if (!(v is Num) || v < 0) argumentError(\"Expected positive integer (Num) argument for '%(name)'\")\n"
+"    if (!(v is Num) || v < 0) argumentError(\"Expected positive 'Num' argument for '%(name)'\")\n"
 "  }\n"
 "\n"
 "  static positiveInt(v, name) {\n"
