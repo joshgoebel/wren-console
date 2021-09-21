@@ -21,15 +21,15 @@ class Enforce {
   static bool(v, name) { type(v, bool, name) }
 
   static int(v, name) {
-    if (!(v is Num) || !v.isInteger) argumentError("Expected integer argument for '%(name)'")
+    if (!(v is Num) || !v.isInteger) argumentError("Expected integer (Num) argument for '%(name)'")
   }
 
   static positiveNum(v, name) {
-    if (!(v is Num) || v < 0) argumentError("Expected positive integer argument for '%(name)'")
+    if (!(v is Num) || v < 0) argumentError("Expected positive integer (Num) argument for '%(name)'")
   }
 
   static positiveInt(v, name) {
-    if (!(v is Num) || !v.isInteger || v < 0) argumentError("Expected positive integer argument for '%(name)'")
+    if (!(v is Num) || !v.isInteger || v < 0) argumentError("Expected positive integer (Num) argument for '%(name)'")
   }
 
   static fn(v, arity, name) {
