@@ -112,12 +112,12 @@ foreign class File {
     if (path == "") return separator
     if (!path.contains(separator)) return "."
 
-    var i = lastIndexOf(path, separator)
+    var i = lastIndexOf_(path, separator)
     var dirname = path[0..i].trimEnd(separator)
     return dirname == "" ? separator : dirname
   }
 
-  static lastIndexOf(string, char) {
+  static lastIndexOf_(string, char) {
     var i = string.count - 1
     while (i >= 0 && string[i] != char) i = i - 1
     return i
@@ -126,9 +126,11 @@ foreign class File {
   static basename(path) {
     var separator = Platform.directorySeparator
     if (!path.contains(separator)) return path
+
     path = path.trimEnd(separator)
     if (path == "") return separator
-    var i = lastIndexOf(path, separator)  // might be -1
+
+    var i = lastIndexOf_(path, separator)  // might be -1
     return path[i+1..-1]
   }
 
