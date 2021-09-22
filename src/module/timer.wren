@@ -1,9 +1,9 @@
 import "scheduler" for Scheduler
-import "enforce" for Enforce
+import "ensure" for Ensure
 
 class Timer {
   static sleep(milliseconds) {
-    Enforce.positiveNum(milliseconds, "milliseconds")
+    Ensure.positiveNum(milliseconds, "milliseconds")
     return Scheduler.await_ { startTimer_(milliseconds, Fiber.current) }
   }
 

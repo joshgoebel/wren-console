@@ -3,11 +3,11 @@
 
 static const char* timerModuleSource =
 "import \"scheduler\" for Scheduler\n"
-"import \"enforce\" for Enforce\n"
+"import \"ensure\" for Ensure\n"
 "\n"
 "class Timer {\n"
 "  static sleep(milliseconds) {\n"
-"    Enforce.positiveNum(milliseconds, \"milliseconds\")\n"
+"    Ensure.positiveNum(milliseconds, \"milliseconds\")\n"
 "    return Scheduler.await_ { startTimer_(milliseconds, Fiber.current) }\n"
 "  }\n"
 "\n"

@@ -1,5 +1,5 @@
 import "scheduler" for Scheduler
-import "enforce" for Enforce
+import "ensure" for Ensure
 
 class Platform {
   foreign static homePath
@@ -49,7 +49,7 @@ class Process {
   }
 
   static chdir(dir) {
-    Enforce.string(dir, "directory")
+    Ensure.string(dir, "directory")
     chdir_(dir)
   }
 

@@ -1,19 +1,19 @@
 import "scheduler" for Scheduler
-import "enforce" for Enforce
+import "ensure" for Ensure
 
 class Directory {
   static create(path) {
-    Enforce.string(path, "path")
+    Ensure.string(path, "path")
     return Scheduler.await_ { create_(path, Fiber.current) }
   }
 
   static delete(path) {
-    Enforce.string(path, "path")
+    Ensure.string(path, "path")
     return Scheduler.await_ { delete_(path, Fiber.current) }
   }
 
   static exists(path) {
-    Enforce.string(path, "path")
+    Ensure.string(path, "path")
     var stat
     Fiber.new {
       stat = Stat.path(path)
@@ -25,7 +25,7 @@ class Directory {
   }
 
   static list(path) {
-    Enforce.string(path, "path")
+    Ensure.string(path, "path")
     return Scheduler.await_ { list_(path, Fiber.current) }
   }
 
@@ -50,12 +50,12 @@ foreign class File {
   }
 
   static delete(path) {
-    Enforce.string(path, "path")
+    Ensure.string(path, "path")
     Scheduler.await_ { delete_(path, Fiber.current) }
   }
 
   static exists(path) {
-    Enforce.string(path, "path")
+    Ensure.string(path, "path")
     var stat
     Fiber.new {
       stat = Stat.path(path)
@@ -73,8 +73,8 @@ foreign class File {
   // TODO: Add named parameters and then call this "open(_,flags:_)"?
   // TODO: Test.
   static openWithFlags(path, flags) {
-    Enforce.string(path, "path")
-    Enforce.positiveInt(flags, "flags")
+    Ensure.string(path, "path")
+    Ensure.positiveInt(flags, "flags")
     var fd = Scheduler.await_ { open_(path, flags, Fiber.current) }
     return new_(fd)
   }
@@ -99,12 +99,12 @@ foreign class File {
   // TODO: This works for directories too, so putting it on File is kind of
   // lame. Consider reorganizing these classes some.
   static realPath(path) {
-    Enforce.string(path, "path")
+    Ensure.string(path, "path")
     return Scheduler.await_ { realPath_(path, Fiber.current) }
   }
 
   static size(path) {
-    Enforce.string(path, "path")
+    Ensure.string(path, "path")
     return Scheduler.await_ { sizePath_(path, Fiber.current) }
   }
 
@@ -133,8 +133,8 @@ foreign class File {
 
   readBytes(count, offset) {
     ensureOpen_()
-    Enforce.positiveInt(count, "count")
-    Enforce.positiveInt(offset, "offset")
+    Ensure.positiveInt(count, "count")
+    Ensure.positiveInt(offset, "offset")
 
     return Scheduler.await_ { readBytes_(count, offset, Fiber.current) }
   }
@@ -143,8 +143,8 @@ foreign class File {
 
   writeBytes(bytes, offset) {
     ensureOpen_()
-    Enforce.string(bytes, "bytes")
-    Enforce.positiveInt(offset, "offset")
+    Ensure.string(bytes, "bytes")
+    Ensure.positiveInt(offset, "offset")
 
     return Scheduler.await_ { writeBytes_(bytes, offset, Fiber.current) }
   }
@@ -179,7 +179,7 @@ class FileFlags {
 
 foreign class Stat {
   static path(path) {
-    Enforce.string(path, "path")
+    Ensure.string(path, "path")
     return Scheduler.await_ { path_(path, Fiber.current) }
   }
 

@@ -10,7 +10,7 @@ class ArgumentError is Error {
   message { _message }
 }
 
-class Enforce {
+class Ensure {
   static argumentError(msg) { ArgumentError.new(msg).raise() }
 
   // simple type assertions

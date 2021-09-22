@@ -7,7 +7,7 @@
 #include "io.wren.inc"
 #include "os.wren.inc"
 #include "repl.wren.inc"
-#include "enforce.wren.inc"
+#include "ensure.wren.inc"
 #include "scheduler.wren.inc"
 #include "runtime.wren.inc"
 #include "timer.wren.inc"
@@ -161,7 +161,7 @@ static ModuleRegistry coreCLImodules[] =
       STATIC_METHOD("exec_(_,_,_,_,_)", processExec)
     END_CLASS
   END_MODULE
-  MODULE(enforce)
+  MODULE(ensure)
   END_MODULE
   MODULE(repl)
   END_MODULE
