@@ -30,7 +30,7 @@ tests.add({"given": "dir1/file.txt", "suffixes": [".c", ".wren"], "expect": "fil
 
 if (Platform.isWindows) {
   tests = tests.map {|t|
-    t["given"]    = t["given"].replace("/", "\\\\")       // ugh
+    t["given"]    = t["given"].replace("/", "\\")       
     t["expect"] = t["expect"].replace("/", "\\")
     return t
   }.toList

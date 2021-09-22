@@ -23,7 +23,7 @@ tests.add({"given": "///foo//bar", "expect": "///foo"}) // expect: true
 
 if (Platform.isWindows) {
   tests = tests.map {|t|
-    t["given"]    = t["given"].replace("/", "\\\\")
+    t["given"]    = t["given"].replace("/", "\\")
     t["expect"] = t["expect"].replace("/", "\\")
     return t
   }.toList
