@@ -631,3 +631,58 @@ void stdinReadStop(WrenVM* vm)
 {
   uv_read_stop(stdinStream);
 }
+
+/* cstream */
+
+typedef struct {
+    uv_write_t req;
+    uv_buf_t buf;
+} write_req_t;
+
+
+void cstream_write_complete(uv_write_t *req, int status) {
+    write_req_t *wr = (write_req_t*) req;
+    free(wr->buf.base);
+    free(wr);
+}
+
+void cstreamWrite(WrenVM* vm) {
+    uv_pipe_t* pipe = (uv_pipe_t*)wrenGetSlotForeign(vm, 0);
+    const char* str = wrenGetSlotString(vm, 1);
+    int size = strlen(str) + 1;
+    write_req_t *req = (write_req_t*) malloc(sizeof(write_req_t));
+    req->buf = uv_buf_init((char*) malloc(size), size);
+    memcpy(req->buf.base, str, size);
+    uv_write((uv_write_t*) req, (uv_stream_t*)pipe, &req->buf, 1, cstream_write_complete);
+}
+
+void cstreamAllocate(WrenVM* vm) {
+  int fd = wrenGetSlotDouble(vm, 1);
+  fprintf(stdout, "cstreamAllocate(%d)\n",fd);
+  wrenEnsureSlots(vm,2);
+  uv_pipe_t* pipe = wrenSetSlotNewForeign(vm, 0, 0, sizeof(uv_pipe_t));
+  uv_pipe_init(getLoop(), pipe, 0);
+  uv_pipe_open(pipe, fd);
+}
+
+//  is there some way to tell if i have a pointer to Wren pool allocated RAM?
+//  (ptr - (void *)vm->first) < vm->bytesAllocated 
+
+
+void cstreamClose(WrenVM* vm) {
+  uv_pipe_t* pipe = (uv_pipe_t*)wrenGetSlotForeign(vm, 0);
+  if (!uv_is_closing((uv_handle_t*)pipe))
+    uv_close((uv_handle_t*)pipe, NULL);
+}
+
+void cstreamFinalize(void* data) {
+  // fprintf(stdout, "cstreamFinalize(%d)\n",data);
+  // fflush(stdout);
+  uv_pipe_t* pipe = (uv_pipe_t*)data;
+  if (pipe == NULL) return;
+
+  if (!uv_is_closing((uv_handle_t*)pipe))
+    uv_close((uv_handle_t*)pipe, NULL);
+
+  pipe = NULL;
+}

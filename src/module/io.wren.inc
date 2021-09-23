@@ -347,4 +347,10 @@ static const char* ioModuleSource =
 "\n"
 "class Stdout {\n"
 "  foreign static flush()\n"
+"}\n"
+"\n"
+"foreign class CStream {\n"
+"  construct openFD(num) {}\n"
+"  foreign write(text)\n"
+"  foreign close()\n"
 "}\n";

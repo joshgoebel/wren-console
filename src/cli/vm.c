@@ -209,6 +209,7 @@ static void freeVM()
 {
   ioShutdown();
   schedulerShutdown();
+  wrenCollectGarbage(vm);
   uvShutdown();
   free(loop);
   

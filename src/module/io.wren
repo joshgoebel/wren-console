@@ -344,3 +344,9 @@ class Stderr {
 class Stdout {
   foreign static flush()
 }
+
+foreign class CStream {
+  construct openFD(num) {}
+  foreign write(text)
+  foreign close()
+}

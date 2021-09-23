@@ -64,7 +64,11 @@ extern void stderrWrite(WrenVM* vm);
 extern void schedulerCaptureMethods(WrenVM* vm);
 extern void timerStartTimer(WrenVM* vm);
 
-
+extern void cstreamWrite(WrenVM* vm);
+extern void cstreamOpenFD(WrenVM* vm);
+extern void cstreamClose(WrenVM* vm);
+extern void cstreamFinalize(void* data);
+extern void cstreamAllocate(WrenVM* vm);
 
 // To locate foreign classes and modules, we build a big directory for them in
 // static data. The nested collection initializer syntax gets pretty noisy, so
@@ -129,6 +133,12 @@ static ModuleRegistry coreCLImodules[] =
       METHOD("user", statUser)
       METHOD("isDirectory", statIsDirectory)
       METHOD("isFile", statIsFile)
+    END_CLASS
+    CLASS(CStream)
+      ALLOCATE(cstreamAllocate)
+      FINALIZE(cstreamFinalize)
+      METHOD("write(_)", cstreamWrite)
+      METHOD("close()", cstreamClose)
     END_CLASS
     CLASS(Stdin)
       STATIC_METHOD("isRaw", stdinIsRaw)
