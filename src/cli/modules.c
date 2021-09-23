@@ -69,6 +69,7 @@ extern void cstreamFlush(WrenVM* vm);
 extern void cstreamOpenFD(WrenVM* vm);
 extern void cstreamClose(WrenVM* vm);
 extern void cstreamIsTerminal(WrenVM* vm);
+extern void cstreamDescriptor(WrenVM* vm);
 extern void cstreamHandler(WrenVM* vm);
 extern void cstreamFinalize(void* data);
 extern void cstreamAllocate(WrenVM* vm);
@@ -144,6 +145,7 @@ static ModuleRegistry coreCLImodules[] =
       METHOD("write(_)", cstreamWrite)
       METHOD("flush()", cstreamFlush)
       METHOD("isTerminal", cstreamIsTerminal)
+      METHOD("descriptor", cstreamDescriptor)
       METHOD("close()", cstreamClose)
     END_CLASS
     CLASS(Stdin)

@@ -345,6 +345,13 @@ class Stderr {
 //   foreign static flush()
 // }
 
+class NotImplementedError {
+  construct new() {}
+  abort() { Fiber.abort(NotImplementedError.new()) }
+  message { "Not implemented. " }
+  toString { message }
+}
+
 class Stream {
   construct new() {
     _buffer = ""
@@ -374,9 +381,11 @@ class Stream {
     _cstream.close()
     _isClosed = true
   }
-  
+
   // status
+  descriptor { _cstream.descriptor }
   isTerminal { _cstream.isTerminal }
+  isOpen { !_isClosed }
   isClosed { _isClosed }
   sleepUntilRead_() {
     _fiber = Fiber.current
@@ -409,7 +418,12 @@ class Stream {
     _buffer = _buffer[lineSeparator + 1..-1]
     return line
   }
+  // TODO: 
+  readBytes(count) { NotImplementedError.abort() }
+
   // output
+  // TODO: 
+  writeBytes(bytes) { NotImplementedError.abort() } 
   write(s) { _cstream.write(s) }
   print(s) { write("%(s)\n") }
   flush() { _cstream.flush() }
@@ -421,6 +435,7 @@ foreign class CStream {
   foreign handler=(h)
   foreign close()
   foreign isTerminal
+  foreign descriptor
   foreign flush()
   // foreign static isRaw
   // foreign static isRaw=(value)

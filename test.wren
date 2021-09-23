@@ -23,6 +23,7 @@ var stdin = CStream.openFD(0)
 var s = Stream.fromCStream(stdin)
 
 System.print("is terminal: %(s.isTerminal)" )
+System.print("stdout descriptor: %(Stdout.descriptor)" )
 
 var t
 while (t=s.read()) {

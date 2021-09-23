@@ -664,10 +664,10 @@ void cstreamWrite(WrenVM* vm) {
 
 void cstreamAllocate(WrenVM* vm) {
   int fd = wrenGetSlotDouble(vm, 1);
-  fprintf(stdout, "cstreamAllocate(%d)\n",fd);
+  // fprintf(stdout, "cstreamAllocate(%d)\n",fd);
   wrenEnsureSlots(vm,2);
   uv_pipe_t* pipe = wrenSetSlotNewForeign(vm, 0, 0, sizeof(uv_pipe_t));
-  fprintf(stdout, "pipe addr(%u)\n",pipe);
+  // fprintf(stdout, "pipe addr(%u)\n",pipe);
   uv_pipe_init(getLoop(), pipe, 0);
   uv_pipe_open(pipe, fd);
 }
@@ -724,12 +724,35 @@ void cstreamHandler(WrenVM* vm) {
   uv_read_start((uv_stream_t*)pipe, allocCallback, streamReadCallback);
 }
 
+void cstreamDescriptor(WrenVM* vm) {
+  uv_pipe_t* pipe = (uv_pipe_t*)wrenGetSlotForeign(vm, 0);
+  wrenSetSlotDouble(vm, 0, pipe->io_watcher.fd);
+}
+
 void cstreamFlush(WrenVM* vm) {
   uv_pipe_t* pipe = (uv_pipe_t*)wrenGetSlotForeign(vm, 0);
-  int result = fflush((FILE*)&pipe->u.fd);
+  int fd = pipe->io_watcher.fd;
+  int result;
+  switch (fd)
+  {
+  case 0:
+    result = fflush(stdin);
+    break;
+  case 1:
+    result = fflush(stdout);
+    break;
+  case 2:
+    result = fflush(stderr);
+    break;
+  // TODO: fsync maybe?
+  // TODO: Is there a better way to flush with libuv?
+  default:
+    break;
+  }
   if (result==0) {
     wrenSetSlotNull(vm,0);
   } else {
+    fprintf(stdout, "flush error %d\n",result);
     // TODO: return an error code to raise on the Wren side?
   }
 }
@@ -743,8 +766,8 @@ void cstreamClose(WrenVM* vm) {
 }
 
 void cstreamFinalize(void* data) {
-  fprintf(stdout, "cstreamFinalize(%d)\n",data);
-  fflush(stdout);
+  // fprintf(stdout, "cstreamFinalize(%d)\n",data);
+  // fflush(stdout);
   uv_pipe_t* pipe = (uv_pipe_t*)data;
   if (pipe == NULL) return;
 
