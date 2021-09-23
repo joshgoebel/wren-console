@@ -6,6 +6,7 @@
 #include "scheduler.h"
 #include "stat.h"
 #include "vm.h"
+#include "wren_vm.h"
 #include "resolver.h"
 
 // The single VM instance that the CLI uses.
@@ -177,11 +178,30 @@ static void initVM()
   uv_loop_init(loop);
 }
 
+bool isWrenForeign(WrenVM *vm, void* ptr) {
+  // fprintf(stdout, "ptr %u\n",ptr);
+  void *curr = vm->first;
+  while (curr) {
+    void *data = ((ObjForeign*)curr)->data;
+    // fprintf(stdout, "curr %u - data %u\n",curr, data);
+    if (data==ptr) {
+      // fprintf(stdout, "match %u\n",curr);
+      return true;
+    }
+    curr = (void*)((Obj*)curr)->next;
+  }
+  return false;
+  // ptrdiff_t diff = ((char *)ptr - (char *)vm->first);
+  // return diff < vm->bytesAllocated;
+}
+
 void on_uvClose(uv_handle_t* handle)
 {
     if (handle != NULL)
     {
-        free(handle);
+        if (!isWrenForeign(vm, handle) && !isWrenForeign(resolver, handle)) {
+            free(handle);
+        }
     }
 }
 
@@ -209,6 +229,7 @@ static void freeVM()
 {
   ioShutdown();
   schedulerShutdown();
+  streamShutdown();
   wrenCollectGarbage(vm);
   uvShutdown();
   free(loop);

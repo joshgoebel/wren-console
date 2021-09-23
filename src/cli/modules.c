@@ -65,8 +65,11 @@ extern void schedulerCaptureMethods(WrenVM* vm);
 extern void timerStartTimer(WrenVM* vm);
 
 extern void cstreamWrite(WrenVM* vm);
+extern void cstreamFlush(WrenVM* vm);
 extern void cstreamOpenFD(WrenVM* vm);
 extern void cstreamClose(WrenVM* vm);
+extern void cstreamIsTerminal(WrenVM* vm);
+extern void cstreamHandler(WrenVM* vm);
 extern void cstreamFinalize(void* data);
 extern void cstreamAllocate(WrenVM* vm);
 
@@ -137,7 +140,10 @@ static ModuleRegistry coreCLImodules[] =
     CLASS(CStream)
       ALLOCATE(cstreamAllocate)
       FINALIZE(cstreamFinalize)
+      METHOD("handler=(_)", cstreamHandler)
       METHOD("write(_)", cstreamWrite)
+      METHOD("flush()", cstreamFlush)
+      METHOD("isTerminal", cstreamIsTerminal)
       METHOD("close()", cstreamClose)
     END_CLASS
     CLASS(Stdin)

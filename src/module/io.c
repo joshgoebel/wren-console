@@ -620,6 +620,8 @@ static void stdinReadCallback(uv_stream_t* stream, ssize_t numRead,
   free(buffer->base);
 }
 
+
+
 void stdinReadStart(WrenVM* vm)
 {
   initStdin();
@@ -639,6 +641,10 @@ typedef struct {
     uv_buf_t buf;
 } write_req_t;
 
+void cstreamIsTerminal(WrenVM* vm) {
+  uv_pipe_t* pipe = (uv_pipe_t*)wrenGetSlotForeign(vm, 0);
+  wrenSetSlotBool(vm, 0, uv_guess_handle(pipe->u.fd) == UV_TTY);
+}
 
 void cstream_write_complete(uv_write_t *req, int status) {
     write_req_t *wr = (write_req_t*) req;
@@ -661,6 +667,7 @@ void cstreamAllocate(WrenVM* vm) {
   fprintf(stdout, "cstreamAllocate(%d)\n",fd);
   wrenEnsureSlots(vm,2);
   uv_pipe_t* pipe = wrenSetSlotNewForeign(vm, 0, 0, sizeof(uv_pipe_t));
+  fprintf(stdout, "pipe addr(%u)\n",pipe);
   uv_pipe_init(getLoop(), pipe, 0);
   uv_pipe_open(pipe, fd);
 }
@@ -668,19 +675,80 @@ void cstreamAllocate(WrenVM* vm) {
 //  is there some way to tell if i have a pointer to Wren pool allocated RAM?
 //  (ptr - (void *)vm->first) < vm->bytesAllocated 
 
+WrenHandle *streamReadHandler;
+WrenHandle *streamHandle;
+
+void streamShutdown() {
+  wrenReleaseHandle(getVM(), streamHandle);
+  wrenReleaseHandle(getVM(), streamReadHandler);
+}
+
+static void streamReadCallback(uv_stream_t* stream, ssize_t numRead,
+                              const uv_buf_t* buffer)
+{
+  WrenVM* vm = getVM();
+  
+  // If stdin was closed, send null to let io.wren know.
+  if (numRead == UV_EOF)
+  {
+    wrenEnsureSlots(vm, 2);
+    wrenSetSlotHandle(vm, 0, streamHandle);
+    wrenSetSlotNull(vm, 1);
+    wrenCall(vm, streamReadHandler);
+    
+    // shutdownStdin();
+    return;
+  }
+
+  // TODO: Handle other errors.
+
+  // TODO: Having to copy the bytes here is a drag. It would be good if Wren's
+  // embedding API supported a way to *give* it bytes that were previously
+  // allocated using Wren's own allocator.
+  wrenEnsureSlots(vm, 2);
+  wrenSetSlotHandle(vm, 0, streamHandle);
+  wrenSetSlotBytes(vm, 1, buffer->base, numRead);
+  wrenCall(vm, streamReadHandler);
+
+  // TODO: Likewise, freeing this after we resume is lame.
+  free(buffer->base);
+}
+
+void cstreamHandler(WrenVM* vm) {
+  uv_pipe_t* pipe = (uv_pipe_t*)wrenGetSlotForeign(vm, 0);
+  if (!streamHandle)
+    streamHandle = wrenGetSlotHandle(vm, 1);
+  if (!streamReadHandler)
+    streamReadHandler = wrenMakeCallHandle(vm, "readHandler(_)");
+
+  uv_read_start((uv_stream_t*)pipe, allocCallback, streamReadCallback);
+}
+
+void cstreamFlush(WrenVM* vm) {
+  uv_pipe_t* pipe = (uv_pipe_t*)wrenGetSlotForeign(vm, 0);
+  int result = fflush((FILE*)&pipe->u.fd);
+  if (result==0) {
+    wrenSetSlotNull(vm,0);
+  } else {
+    // TODO: return an error code to raise on the Wren side?
+  }
+}
 
 void cstreamClose(WrenVM* vm) {
   uv_pipe_t* pipe = (uv_pipe_t*)wrenGetSlotForeign(vm, 0);
+
+  uv_read_stop((uv_stream_t*)pipe);
   if (!uv_is_closing((uv_handle_t*)pipe))
     uv_close((uv_handle_t*)pipe, NULL);
 }
 
 void cstreamFinalize(void* data) {
-  // fprintf(stdout, "cstreamFinalize(%d)\n",data);
-  // fflush(stdout);
+  fprintf(stdout, "cstreamFinalize(%d)\n",data);
+  fflush(stdout);
   uv_pipe_t* pipe = (uv_pipe_t*)data;
   if (pipe == NULL) return;
 
+  uv_read_stop((uv_stream_t*)pipe);
   if (!uv_is_closing((uv_handle_t*)pipe))
     uv_close((uv_handle_t*)pipe, NULL);
 

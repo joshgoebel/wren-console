@@ -341,12 +341,89 @@ class Stderr {
   foreign static write(str)
 }
 
-class Stdout {
-  foreign static flush()
+// class Stdout {
+//   foreign static flush()
+// }
+
+class Stream {
+  construct new() {
+    _buffer = ""
+    _isClosed = false
+    _isReading = false
+  }
+  construct fromCStream(stream) {
+    _buffer = ""
+    _isReading = false
+    _isClosed = false
+    _cstream = stream
+  }
+  readHandler(data) {
+    System.print("read handler: %(data)")
+    _buffer = data
+    if (data==null) {
+      _isClosed = true
+    }
+    if (_fiber) {
+      var f = _fiber
+      _fiber = null
+      f.transfer()
+    }
+  }
+  // utils 
+  close() {
+    _cstream.close()
+    _isClosed = true
+  }
+  
+  // status
+  isTerminal { _cstream.isTerminal }
+  isClosed { _isClosed }
+  sleepUntilRead_() {
+    _fiber = Fiber.current
+    var result = Scheduler.runNextScheduled_()
+  }
+
+  // input
+  read_() {
+    if (isClosed) return
+    if (!_isReading) {
+      _cstream.handler = this
+    }
+    if (!_buffer || _buffer.isEmpty) sleepUntilRead_()
+  }
+  read() {
+    read_()
+    var data = _buffer
+    _buffer = null
+    return data
+  }
+
+  readLine() {
+    read_ 
+    // TODO: Handle Windows line separators.
+    var lineSeparator = _buffer.indexOf("\n")
+    if (lineSeparator == -1) return null
+
+    // Split the line at the separator.
+    var line = _buffer[0...lineSeparator]
+    _buffer = _buffer[lineSeparator + 1..-1]
+    return line
+  }
+  // output
+  write(s) { _cstream.write(s) }
+  print(s) { write("%(s)\n") }
+  flush() { _cstream.flush() }
 }
 
 foreign class CStream {
   construct openFD(num) {}
   foreign write(text)
+  foreign handler=(h)
   foreign close()
+  foreign isTerminal
+  foreign flush()
+  // foreign static isRaw
+  // foreign static isRaw=(value)
 }
+
+var Stdout = Stream.fromCStream(CStream.openFD(1))
