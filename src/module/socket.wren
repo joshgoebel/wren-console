@@ -46,6 +46,7 @@ class Connection {
         System.print("new connection")
         // _uv = UVConnection.new(this)
         _uv = uvconn
+        _uv.delegate = this
         _readBuffer = ""
         _isClosed = false
     }
@@ -91,6 +92,7 @@ foreign class UVConnection {
     construct new(connectionWren) {
         System.print("new UVconnection")
     }
+    foreign delegate=(d)
     foreign write(str)
     foreign close()
 }
@@ -99,7 +101,9 @@ foreign class UVServer {
     construct new(ip,port,serverWren) {
 
     }
+    foreign connectionCB=(handler)
     // binds and starts listening
+    foreign accept(client)
     foreign listen_()
     // stops listening
     foreign stop_()
