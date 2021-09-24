@@ -55,7 +55,7 @@ class Connection {
         _status = Connection.Open
     }
     isClosed { _status == Connection.Closed }
-    isOpen { _statuc == Connection.Open }
+    isOpen { _status == Connection.Open }
     writeLn(data) { _uv.write("%(data)\n") }
     write(data) { _uv.write("%(data)") }
     writeBytes(strData) { _uv.writeBytes(strData) }
@@ -71,13 +71,27 @@ class Connection {
         _readBuffer = ""
         return result
     }
+    waitForData() {
+      _sleepingForRead = Fiber.current
+      Scheduler.runNextScheduled_()
+    }
     // reads data and waits to it if there isn't any
     readWait() {
-        if (_readBuffer.isEmpty) {
-            _sleepingForRead = Fiber.current
-            Scheduler.runNextScheduled_()
-        }
+        if (_readBuffer.isEmpty) waitForData()
         return read()
+    }
+
+    readLine() {
+      var lineSeparator
+      while(true) {
+        System.print("while loop; buffer %(_readBuffer.bytes.toList)")
+        lineSeparator = _readBuffer.indexOf("\n")
+        if (lineSeparator != -1) break
+        waitForData()
+      }
+      var line = _readBuffer[0...lineSeparator]
+      _readBuffer = _readBuffer[lineSeparator + 1..-1]
+      return line
     }
 
     #delegated
