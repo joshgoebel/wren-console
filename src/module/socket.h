@@ -4,14 +4,13 @@
 typedef struct tcp_server_t {
     struct sockaddr_in addr;
     uv_tcp_t server;
-    WrenHandle* handle;
-    WrenHandle* connectionCB;
+    WrenHandle* delegate;
 } uv_server_t;
 
 typedef struct {
   uv_stream_t* handle;
   WrenHandle* delegate;
-} uv_client_t;
+} uv_connection_t;
 
 
 void alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) ;

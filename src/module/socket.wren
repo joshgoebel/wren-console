@@ -24,16 +24,18 @@ class TCPServer {
         _port = port
         _connections = []
         _uv = UVServer.new(ip, port, this)
-        _uv.connectionCB = Fn.new {
-          var uvconn = UVConnection.new()
-          if (_uv.accept(uvconn)) {
-            var connection = Connection.new(uvconn)
-            _connections.add(connection)
-            onConnect.call(connection)
-          } else {
-            uvconn.close()
-          }
-        }
+        _uv.delegate = this
+    }
+    #delegated
+    newIncomingConnection() {
+      var uvconn = UVConnection.new()
+      if (_uv.accept(uvconn)) {
+        var connection = Connection.new(uvconn)
+        _connections.add(connection)
+        onConnect.call(connection)
+      } else {
+        uvconn.close()
+      }
     }
     onConnect=(fn) { _onConnect = fn }
     onConnect { _onConnect }
@@ -42,20 +44,25 @@ class TCPServer {
 }
 
 class Connection {
+    static Open { "open" }
+    static Closed { "closed" }
+
     construct new(uvconn) {
         System.print("new connection")
         _uv = uvconn
         _uv.delegate = this
         _readBuffer = ""
-        _isClosed = false
+        _status = Connection.Open
     }
-    isClosed { _isClosed }
+    isClosed { _status == Connection.Closed }
+    isOpen { _statuc == Connection.Open }
     writeLn(data) { _uv.write("%(data)\n") }
     write(data) { _uv.write("%(data)") }
+    writeBytes(strData) { _uv.writeBytes(strData) }
     uv_ { _uv }
     close() { 
         _uv.close() 
-        _isClosed = true
+        _status = Connection.Closed
     }
     // instantly returns the read buffer or null if there is nothing to read
     read() { 
@@ -73,9 +80,9 @@ class Connection {
         return read()
     }
 
-    // called by C
-    input_(data) {
-        System.print(("input_"))
+    #delegated
+    dataReceived(data) {
+        System.print(data.bytes.toList)
         _readBuffer = _readBuffer + data
         if (_sleepingForRead) { 
             var fiber = _sleepingForRead    
@@ -85,22 +92,22 @@ class Connection {
     }
 }
 
-#allocates= uv_tcp_tclient
 foreign class UVConnection {
     construct new() {}
+    // delegates must provide:
+    // - dataReceived
     foreign delegate=(d)
+    foreign writeBytes(strData)
     foreign write(str)
     foreign close()
 }
 
 foreign class UVServer {
-    construct new(ip,port,serverWren) {
-
-    }
-    foreign connectionCB=(handler)
-    // binds and starts listening
+    construct new(ip,port,serverWren) {}
     foreign accept(client)
     foreign listen_()
-    // stops listening
     foreign stop_()
+    // delegates must provide:
+    // - newIncomingConnection
+    foreign delegate=(d)
 }

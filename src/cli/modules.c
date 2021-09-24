@@ -56,14 +56,16 @@ extern void schedulerCaptureMethods(WrenVM* vm);
 extern void timerStartTimer(WrenVM* vm);
 
 extern void uvServerAllocate(WrenVM* vm);
-extern void uvServerFinalize(WrenVM* vm);
+extern void uvServerFinalize(void* data);
 extern void uvServerListen(WrenVM* vm);
 extern void uvServerNew(WrenVM* vm);
-extern void uvServerConnectionCB(WrenVM* vm);
 extern void uvServerStop(WrenVM* vm);
 extern void uvServerAccept(WrenVM* vm);
+extern void uvServerDelegateSet(WrenVM* vm);
 
+extern void uvConnectionFinalize(void* data);
 extern void uvConnectionWrite(WrenVM* vm);
+extern void uvConnectionWriteBytes(WrenVM* vm);
 extern void uvConnectionClose(WrenVM* vm);
 extern void uvConnectionDelegateSet(WrenVM* vm);
 extern void uvConnectionAllocate(WrenVM* vm);
@@ -139,16 +141,18 @@ static ModuleRegistry modules[] =
   MODULE(socket)
     CLASS(UVConnection)
       METHOD("write(_)", uvConnectionWrite)
+      METHOD("writeBytes(_)", uvConnectionWriteBytes)
       METHOD("close()", uvConnectionClose)
       METHOD("delegate=(_)", uvConnectionDelegateSet)
       STATIC_METHOD("<allocate>", uvConnectionAllocate)
+      FINALIZER(uvConnectionFinalize)
     END_CLASS
     CLASS(UVServer)
       STATIC_METHOD("<allocate>", uvServerAllocate)
       FINALIZER(uvServerFinalize)
-      METHOD("connectionCB=(_)", uvServerConnectionCB)
       METHOD("listen_()", uvServerListen)
       METHOD("stop_()", uvServerStop)
+      METHOD("delegate=(_)", uvServerDelegateSet)
       METHOD("accept(_)", uvServerAccept)
     END_CLASS
   END_MODULE
