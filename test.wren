@@ -10,24 +10,24 @@ import "timer" for Timer
 
 // Enforce.string(3, "name")
 
-import "io" for CStream, Stream, Stdout
+import "io" for CStream, Stream, Stdout, Stderr
 
 // var s = Stream.new()
 
-Stdout.print("hello")
-Stdout.print("world")
+Stdout.print("hello world")
 Stdout.flush()
 
+// Stderr.print("ERROR")
+
 var stdin = CStream.openFD(0)
-// stdin.handler=s
 var s = Stream.fromCStream(stdin)
 
 System.print("is terminal: %(s.isTerminal)" )
 System.print("stdout descriptor: %(Stdout.descriptor)" )
 
 var t
-while (t=s.read()) {
-  System.print("Echo: %(t)")
+while (t=s.readLine()) {
+  System.print("Echo: `%(t)`")
 }
 
 // var io = CStream.openFD(1)

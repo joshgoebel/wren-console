@@ -336,10 +336,10 @@ class Stdin {
   foreign static readStop_()
 }
 
-class Stderr {
-  static print(str) { write("%(str)\n") }
-  foreign static write(str)
-}
+// class Stderr {
+//   static print(str) { write("%(str)\n") }
+//   foreign static write(str)
+// }
 
 // class Stdout {
 //   foreign static flush()
@@ -348,7 +348,7 @@ class Stderr {
 class NotImplementedError {
   construct new() {}
   abort() { Fiber.abort(NotImplementedError.new()) }
-  message { "Not implemented. " }
+  message { "Not implemented." }
   toString { message }
 }
 
@@ -363,6 +363,7 @@ class Stream {
     _isReading = false
     _isClosed = false
     _cstream = stream
+    __streams.add(this)
   }
   readHandler(data) {
     System.print("read handler: %(data)")
@@ -408,7 +409,8 @@ class Stream {
   }
 
   readLine() {
-    read_ 
+    read_()
+    if (!_buffer) return
     // TODO: Handle Windows line separators.
     var lineSeparator = _buffer.indexOf("\n")
     if (lineSeparator == -1) return null
@@ -425,8 +427,18 @@ class Stream {
   // TODO: 
   writeBytes(bytes) { NotImplementedError.abort() } 
   write(s) { _cstream.write(s) }
-  print(s) { write("%(s)\n") }
+  print(s) { write("%(s)-\n") }
   flush() { _cstream.flush() }
+
+  static init() {
+    __streams = []
+  }
+  static closeAll() {
+    __streams.each { |stream| 
+      // System.print("%(stream) %(stream.descriptor)")
+      stream.close()
+    }
+  }
 }
 
 foreign class CStream {
@@ -441,4 +453,8 @@ foreign class CStream {
   // foreign static isRaw=(value)
 }
 
+Stream.init()
 var Stdout = Stream.fromCStream(CStream.openFD(1))
+var Stderr = Stream.fromCStream(CStream.openFD(2))
+
+

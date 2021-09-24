@@ -1,6 +1,6 @@
 import "repl" for Repl, AnsiRepl, SimpleRepl
 import "os" for Platform, Process
-import "io" for Stdin, Stderr, File, Stdout, Stat
+import "io" for Stdin, Stderr, File, Stdout, Stat, Stream
 import "mirror" for Mirror
 import "meta" for Meta
 import "runtime" for Runtime
@@ -44,7 +44,9 @@ class CLI {
     } else {
       runFile(Process.allArguments[1])
     }
+    System.print("boo")
     Stdout.flush()
+    Stream.closeAll()
   }
   static versionInfo { 
     return "wrenc v%(Runtime.VERSION)" +

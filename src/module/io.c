@@ -641,9 +641,16 @@ typedef struct {
     uv_buf_t buf;
 } write_req_t;
 
+typedef struct {
+  uv_pipe_t *pipe;
+  int fd;
+  bool isClosed;
+  WrenHandle* streamHandle;
+} cstream_t;
+
 void cstreamIsTerminal(WrenVM* vm) {
-  uv_pipe_t* pipe = (uv_pipe_t*)wrenGetSlotForeign(vm, 0);
-  wrenSetSlotBool(vm, 0, uv_guess_handle(pipe->u.fd) == UV_TTY);
+  cstream_t* obj = wrenGetSlotForeign(vm, 0);
+  wrenSetSlotBool(vm, 0, uv_guess_handle(obj->fd) == UV_TTY);
 }
 
 void cstream_write_complete(uv_write_t *req, int status) {
@@ -653,46 +660,57 @@ void cstream_write_complete(uv_write_t *req, int status) {
 }
 
 void cstreamWrite(WrenVM* vm) {
-    uv_pipe_t* pipe = (uv_pipe_t*)wrenGetSlotForeign(vm, 0);
+    cstream_t* obj = wrenGetSlotForeign(vm, 0);
     const char* str = wrenGetSlotString(vm, 1);
-    int size = strlen(str) + 1;
+    int size = strlen(str);
     write_req_t *req = (write_req_t*) malloc(sizeof(write_req_t));
-    req->buf = uv_buf_init((char*) malloc(size), size);
+    req->buf = uv_buf_init((char*) malloc(size + 1), size);
     memcpy(req->buf.base, str, size);
-    uv_write((uv_write_t*) req, (uv_stream_t*)pipe, &req->buf, 1, cstream_write_complete);
+    uv_write((uv_write_t*) req, (uv_stream_t*)obj->pipe, &req->buf, 1, cstream_write_complete);
 }
 
 void cstreamAllocate(WrenVM* vm) {
   int fd = wrenGetSlotDouble(vm, 1);
   // fprintf(stdout, "cstreamAllocate(%d)\n",fd);
   wrenEnsureSlots(vm,2);
-  uv_pipe_t* pipe = wrenSetSlotNewForeign(vm, 0, 0, sizeof(uv_pipe_t));
-  // fprintf(stdout, "pipe addr(%u)\n",pipe);
-  uv_pipe_init(getLoop(), pipe, 0);
-  uv_pipe_open(pipe, fd);
+  cstream_t* obj = wrenSetSlotNewForeign(vm, 0, 0, sizeof(cstream_t));
+  obj->pipe = malloc(sizeof(uv_pipe_t));
+  memset(obj->pipe, 0, sizeof(cstream_t));
+  // uv_pipe_t* pipe = wrenSetSlotNewForeign(vm, 0, 0, sizeof(uv_pipe_t));
+  // fprintf(stdout, "pipe addr(%u)\n",obj->pipe);
+  uv_pipe_init(getLoop(), obj->pipe, 0);
+  uv_pipe_open(obj->pipe, fd);
+
+  obj->pipe->data = obj;
+  obj->fd = fd;
+  obj->isClosed = false;
 }
 
 //  is there some way to tell if i have a pointer to Wren pool allocated RAM?
 //  (ptr - (void *)vm->first) < vm->bytesAllocated 
 
 WrenHandle *streamReadHandler;
-WrenHandle *streamHandle;
+// WrenHandle *streamHandle;
 
 void streamShutdown() {
-  wrenReleaseHandle(getVM(), streamHandle);
-  wrenReleaseHandle(getVM(), streamReadHandler);
+  if (streamReadHandler) {
+    wrenReleaseHandle(getVM(), streamReadHandler);
+    streamReadHandler = NULL;
+  }
 }
 
 static void streamReadCallback(uv_stream_t* stream, ssize_t numRead,
                               const uv_buf_t* buffer)
 {
   WrenVM* vm = getVM();
+
+  cstream_t *obj = (cstream_t*) stream->data;
   
   // If stdin was closed, send null to let io.wren know.
   if (numRead == UV_EOF)
   {
     wrenEnsureSlots(vm, 2);
-    wrenSetSlotHandle(vm, 0, streamHandle);
+    wrenSetSlotHandle(vm, 0, obj->streamHandle);
     wrenSetSlotNull(vm, 1);
     wrenCall(vm, streamReadHandler);
     
@@ -706,7 +724,7 @@ static void streamReadCallback(uv_stream_t* stream, ssize_t numRead,
   // embedding API supported a way to *give* it bytes that were previously
   // allocated using Wren's own allocator.
   wrenEnsureSlots(vm, 2);
-  wrenSetSlotHandle(vm, 0, streamHandle);
+  wrenSetSlotHandle(vm, 0, obj->streamHandle);
   wrenSetSlotBytes(vm, 1, buffer->base, numRead);
   wrenCall(vm, streamReadHandler);
 
@@ -715,23 +733,23 @@ static void streamReadCallback(uv_stream_t* stream, ssize_t numRead,
 }
 
 void cstreamHandler(WrenVM* vm) {
-  uv_pipe_t* pipe = (uv_pipe_t*)wrenGetSlotForeign(vm, 0);
-  if (!streamHandle)
-    streamHandle = wrenGetSlotHandle(vm, 1);
+  cstream_t* obj = wrenGetSlotForeign(vm, 0);
+  if (!obj->streamHandle)
+    obj->streamHandle = wrenGetSlotHandle(vm, 1);
   if (!streamReadHandler)
     streamReadHandler = wrenMakeCallHandle(vm, "readHandler(_)");
 
-  uv_read_start((uv_stream_t*)pipe, allocCallback, streamReadCallback);
+  uv_read_start((uv_stream_t*)obj->pipe, allocCallback, streamReadCallback);
 }
 
 void cstreamDescriptor(WrenVM* vm) {
-  uv_pipe_t* pipe = (uv_pipe_t*)wrenGetSlotForeign(vm, 0);
-  wrenSetSlotDouble(vm, 0, pipe->io_watcher.fd);
+  cstream_t* obj = wrenGetSlotForeign(vm, 0);
+  wrenSetSlotDouble(vm, 0, obj->fd);
 }
 
 void cstreamFlush(WrenVM* vm) {
-  uv_pipe_t* pipe = (uv_pipe_t*)wrenGetSlotForeign(vm, 0);
-  int fd = pipe->io_watcher.fd;
+  cstream_t* obj = wrenGetSlotForeign(vm, 0);
+  int fd = obj->fd;
   int result;
   switch (fd)
   {
@@ -758,22 +776,35 @@ void cstreamFlush(WrenVM* vm) {
 }
 
 void cstreamClose(WrenVM* vm) {
-  uv_pipe_t* pipe = (uv_pipe_t*)wrenGetSlotForeign(vm, 0);
+  cstream_t* obj = wrenGetSlotForeign(vm, 0);
 
-  uv_read_stop((uv_stream_t*)pipe);
-  if (!uv_is_closing((uv_handle_t*)pipe))
-    uv_close((uv_handle_t*)pipe, NULL);
+  uv_read_stop((uv_stream_t*)obj->pipe);
+  if (!uv_is_closing((uv_handle_t*)obj->pipe))
+    uv_close((uv_handle_t*)obj->pipe, NULL);
+
+  if (obj->streamHandle) {
+    wrenReleaseHandle(getVM(), obj->streamHandle);
+    obj->streamHandle = NULL;
+  }
+
 }
 
 void cstreamFinalize(void* data) {
   // fprintf(stdout, "cstreamFinalize(%d)\n",data);
   // fflush(stdout);
-  uv_pipe_t* pipe = (uv_pipe_t*)data;
-  if (pipe == NULL) return;
+  cstream_t* obj = (cstream_t*)data;
+  // uv_pipe_t* pipe = (uv_pipe_t*)data;
+  if (obj->pipe == NULL) return;
 
-  uv_read_stop((uv_stream_t*)pipe);
-  if (!uv_is_closing((uv_handle_t*)pipe))
-    uv_close((uv_handle_t*)pipe, NULL);
+  uv_read_stop((uv_stream_t*)obj->pipe);
+  if (!uv_is_closing((uv_handle_t*)obj->pipe))
+    uv_close((uv_handle_t*)obj->pipe, NULL);
 
-  pipe = NULL;
+  if (obj->streamHandle) {
+    wrenReleaseHandle(getVM(), obj->streamHandle);
+    obj->streamHandle = NULL;
+  }
+    
+
+  // obj->pipe = NULL;
 }
