@@ -59,6 +59,7 @@ extern void tcpServerAllocate(WrenVM* vm);
 extern void tcpServerFinalize(WrenVM* vm);
 extern void tcpServerListen(WrenVM* vm);
 extern void tcpServerNew(WrenVM* vm);
+extern void tcpServerConnectionCB(WrenVM* vm);
 extern void tcpServerStop(WrenVM* vm);
 
 extern void uvConnectionWrite(WrenVM* vm);
@@ -142,6 +143,7 @@ static ModuleRegistry modules[] =
     CLASS(UVListener)
       STATIC_METHOD("<allocate>", tcpServerAllocate)
       FINALIZER(tcpServerFinalize)
+      METHOD("connectionCB=(_)", tcpServerConnectionCB)
       METHOD("listen_()", tcpServerListen)
       METHOD("stop_()", tcpServerStop)
     END_CLASS

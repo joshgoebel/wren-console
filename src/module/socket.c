@@ -62,13 +62,21 @@ void echo_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf) {
     }
 }
 
-void uvConnectionAllocate(WrenVM* vm) {
-    fprintf(stderr,"uvConnectionAllocate\n");
-    uv_tcp_t *client = (uv_tcp_t*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(uv_tcp_t));
-}
-
 
 WrenHandle* onConnect;
+
+void tcpServerConnectionCB(WrenVM* vm) {
+  tcp_server_t* tcpServer = (tcp_server_t*)wrenGetSlotForeign(vm, 0);
+
+  uv_tcp_t *client = (uv_tcp_t*)wrenGetSlotForeign(vm, 1);
+  uv_tcp_init(getLoop(), client); 
+
+  if (uv_accept(tcpServer, (uv_stream_t*) client) == 0) {
+    wrenSetSlotBool(vm, 0, true);
+  } else {
+    wrenSetSlotBool(vm, 0, false);
+  }
+}
 
 void on_new_connection(uv_stream_t *server, int status) {
     if (status < 0) {
@@ -109,6 +117,11 @@ void write_done(uv_write_t *req, int status) {
     free(req);
 }
 
+
+void uvConnectionAllocate(WrenVM* vm) {
+    fprintf(stderr,"uvConnectionAllocate\n");
+    uv_tcp_t *client = (uv_tcp_t*)wrenSetSlotNewForeign(vm, 0, 0, sizeof(uv_tcp_t));
+}
 
 void uvConnectionWrite(WrenVM* vm) {
     uv_stream_t *client = (uv_stream_t*)wrenGetSlotForeign(vm, 0);

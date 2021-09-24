@@ -22,20 +22,30 @@ class TCPServer {
     construct new(ip, port) {
         _ip = ip
         _port = port
+        _connections = []
         _uv = UVListener.new(ip, port, this)
+        _uv.connectionCB = Fn.new {
+          var uvconn = UVConnection.new()
+          if (_uv.accept(uvconn)) {
+            var connection = Connection.new(uvconn)
+            _connection.add(connection)
+            onConnect.call(connection)
+          } else {
+            uvconn.close()
+          }
+        }
     }
-    onConnect=(fn) {
-        _onConnect = fn
-    }
+    onConnect=(fn) { _onConnect = fn }
     onConnect { _onConnect }
     serve() { _uv.listen_() }
     stop() { _uv.stop_() }
 }
 
 class Connection {
-    construct new() {
+    construct new(uvconn) {
         System.print("new connection")
-        _uv = UVConnection.new(this)
+        // _uv = UVConnection.new(this)
+        _uv = uvconn
         _readBuffer = ""
         _isClosed = false
     }
@@ -77,6 +87,7 @@ class Connection {
 
 #allocates= uv_tcp_tclient
 foreign class UVConnection {
+    construct new() {}
     construct new(connectionWren) {
         System.print("new UVconnection")
     }
