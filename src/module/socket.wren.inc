@@ -48,7 +48,6 @@ static const char* socketModuleSource =
 "class Connection {\n"
 "    construct new(uvconn) {\n"
 "        System.print(\"new connection\")\n"
-"        // _uv = UVConnection.new(this)\n"
 "        _uv = uvconn\n"
 "        _uv.delegate = this\n"
 "        _readBuffer = \"\"\n"

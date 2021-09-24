@@ -44,7 +44,6 @@ class TCPServer {
 class Connection {
     construct new(uvconn) {
         System.print("new connection")
-        // _uv = UVConnection.new(this)
         _uv = uvconn
         _uv.delegate = this
         _readBuffer = ""
@@ -89,9 +88,6 @@ class Connection {
 #allocates= uv_tcp_tclient
 foreign class UVConnection {
     construct new() {}
-    construct new(connectionWren) {
-        System.print("new UVconnection")
-    }
     foreign delegate=(d)
     foreign write(str)
     foreign close()

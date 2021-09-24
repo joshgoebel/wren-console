@@ -10,7 +10,6 @@ typedef struct tcp_server_t {
 
 typedef struct {
   uv_stream_t* handle;
-  WrenHandle* connectionCB;
   WrenHandle* delegate;
 } uv_client_t;
 

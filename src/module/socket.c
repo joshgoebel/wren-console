@@ -9,9 +9,6 @@
 uv_loop_t *loop;
 struct sockaddr_in addr;
 
-static WrenHandle* ConnectionHandle;
-static WrenHandle* newConnectionHandle;
-
 /* utilities */
 
 WrenHandle* wrenInstantiate(WrenVM* vm, const char* module, const char* class, const char* fn) {
@@ -207,6 +204,7 @@ void uvConnectionWrite(WrenVM* vm) {
 
 void uvConnectionClose(WrenVM* vm) {
     uv_client_t *client = (uv_client_t*)wrenGetSlotForeign(vm, 0);
+    uv_read_stop((uv_stream_t*)client->handle);
     uv_close((uv_handle_t*) client->handle, NULL);
     // wrenReleaseHandle(vm, client->data); 
 }

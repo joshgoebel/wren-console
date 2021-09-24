@@ -1,16 +1,25 @@
 import "socket" for TCPServer
 import "timer" for Timer
 
+class EchoClient {
+  construct new(conn) {
+    _conn = conn
+  }
+  handle() {
+    _conn.writeLn("Hello, bob")
+    var x 
+    while (x = _conn.readWait()) {
+        System.print(x)
+        _conn.write(x)
+    }
+    // _conn.close()
+  }
+}
+
 var server = TCPServer.new("127.0.0.1",7000)
 server.onConnect = Fn.new() { |connection|
-    System.print("onConnect fired")
-    connection.writeLn("Hello, bob")
-    var x 
-    while (x = connection.readWait()) {
-        System.print(x)
-        connection.write(x)
-    }
-    // connection.close()
+  System.print("onConnect fired")
+  EchoClient.new(connection).handle()
 }
 server.serve()
 
