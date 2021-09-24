@@ -23,12 +23,12 @@ class TCPServer {
         _ip = ip
         _port = port
         _connections = []
-        _uv = UVListener.new(ip, port, this)
+        _uv = UVServer.new(ip, port, this)
         _uv.connectionCB = Fn.new {
           var uvconn = UVConnection.new()
           if (_uv.accept(uvconn)) {
             var connection = Connection.new(uvconn)
-            _connection.add(connection)
+            _connections.add(connection)
             onConnect.call(connection)
           } else {
             uvconn.close()
@@ -95,7 +95,7 @@ foreign class UVConnection {
     foreign close()
 }
 
-foreign class UVListener {
+foreign class UVServer {
     construct new(ip,port,serverWren) {
 
     }

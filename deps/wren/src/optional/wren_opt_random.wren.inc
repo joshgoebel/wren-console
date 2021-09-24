@@ -1,4 +1,4 @@
-// Generated automatically from src/optional/wren_opt_random.wren. Do not edit.
+// Generated automatically from deps/wren/src/optional/wren_opt_random.wren. Do not edit.
 static const char* randomModuleSource =
 "foreign class Random {\n"
 "  construct new() {\n"

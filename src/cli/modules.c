@@ -55,15 +55,17 @@ extern void stdoutFlush(WrenVM* vm);
 extern void schedulerCaptureMethods(WrenVM* vm);
 extern void timerStartTimer(WrenVM* vm);
 
-extern void tcpServerAllocate(WrenVM* vm);
-extern void tcpServerFinalize(WrenVM* vm);
-extern void tcpServerListen(WrenVM* vm);
-extern void tcpServerNew(WrenVM* vm);
-extern void tcpServerConnectionCB(WrenVM* vm);
-extern void tcpServerStop(WrenVM* vm);
+extern void uvServerAllocate(WrenVM* vm);
+extern void uvServerFinalize(WrenVM* vm);
+extern void uvServerListen(WrenVM* vm);
+extern void uvServerNew(WrenVM* vm);
+extern void uvServerConnectionCB(WrenVM* vm);
+extern void uvServerStop(WrenVM* vm);
+extern void uvServerAccept(WrenVM* vm);
 
 extern void uvConnectionWrite(WrenVM* vm);
 extern void uvConnectionClose(WrenVM* vm);
+extern void uvConnectionDelegateSet(WrenVM* vm);
 extern void uvConnectionAllocate(WrenVM* vm);
 
 // The maximum number of foreign methods a single class defines. Ideally, we
@@ -138,14 +140,16 @@ static ModuleRegistry modules[] =
     CLASS(UVConnection)
       METHOD("write(_)", uvConnectionWrite)
       METHOD("close()", uvConnectionClose)
+      METHOD("delegate=(_)", uvConnectionDelegateSet)
       STATIC_METHOD("<allocate>", uvConnectionAllocate)
     END_CLASS
-    CLASS(UVListener)
-      STATIC_METHOD("<allocate>", tcpServerAllocate)
-      FINALIZER(tcpServerFinalize)
-      METHOD("connectionCB=(_)", tcpServerConnectionCB)
-      METHOD("listen_()", tcpServerListen)
-      METHOD("stop_()", tcpServerStop)
+    CLASS(UVServer)
+      STATIC_METHOD("<allocate>", uvServerAllocate)
+      FINALIZER(uvServerFinalize)
+      METHOD("connectionCB=(_)", uvServerConnectionCB)
+      METHOD("listen_()", uvServerListen)
+      METHOD("stop_()", uvServerStop)
+      METHOD("accept(_)", uvServerAccept)
     END_CLASS
   END_MODULE
   MODULE(io)
