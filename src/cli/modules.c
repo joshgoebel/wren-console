@@ -67,6 +67,7 @@ extern void uvConnectionFinalize(void* data);
 extern void uvConnectionWrite(WrenVM* vm);
 extern void uvConnectionWriteBytes(WrenVM* vm);
 extern void uvConnectionClose(WrenVM* vm);
+extern void uvConnectionConnect(WrenVM* vm);
 extern void uvConnectionDelegateSet(WrenVM* vm);
 extern void uvConnectionAllocate(WrenVM* vm);
 
@@ -145,6 +146,7 @@ static ModuleRegistry modules[] =
       METHOD("close()", uvConnectionClose)
       METHOD("delegate=(_)", uvConnectionDelegateSet)
       STATIC_METHOD("<allocate>", uvConnectionAllocate)
+      STATIC_METHOD("connect_(_,_)", uvConnectionConnect)
       FINALIZER(uvConnectionFinalize)
     END_CLASS
     CLASS(UVServer)

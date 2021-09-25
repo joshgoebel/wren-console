@@ -57,7 +57,7 @@ class Connection {
     isClosed { _status == Connection.Closed }
     isOpen { _status == Connection.Open }
     writeLn(data) { _uv.write("%(data)\n") }
-    write(data) { _uv.write("%(data)") }
+    write(data) { _uv.write(data) }
     writeBytes(strData) { _uv.writeBytes(strData) }
     uv_ { _uv }
     close() { 
@@ -96,8 +96,12 @@ class Connection {
 
     #delegated
     dataReceived(data) {
-        System.print(data.bytes.toList)
-        _readBuffer = _readBuffer + data
+        if (data==null) {
+          // eof
+        } else {
+          System.print(data.bytes.toList)
+          _readBuffer = _readBuffer + data
+        }
         if (_sleepingForRead) { 
             var fiber = _sleepingForRead    
             _sleepingForRead = null
@@ -110,6 +114,11 @@ foreign class UVConnection {
     construct new() {}
     // delegates must provide:
     // - dataReceived
+    static connect(ip, port) {
+      connect_(ip,port)
+      return Scheduler.runNextScheduled_()
+    }
+    foreign static connect_(ip, port) 
     foreign delegate=(d)
     foreign writeBytes(strData)
     foreign write(str)
