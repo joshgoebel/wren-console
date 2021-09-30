@@ -81,6 +81,18 @@ class Connection {
         return read()
     }
 
+    buffer_ { _readBuffer }
+    seek(bytes) {
+      var data 
+      if (bytes >= _readBuffer.count) {
+        data = _readBuffer
+        _readBuffer = ""
+      } else {
+        data = _readBuffer[0...bytes]
+        _readBuffer = _readBuffer[bytes..-1]
+      }
+      return data
+    }
     readLine() {
       var lineSeparator
       while(true) {
