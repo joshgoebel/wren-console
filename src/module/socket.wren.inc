@@ -114,6 +114,7 @@ static const char* socketModuleSource =
 "    dataReceived(data) {\n"
 "        if (data==null) {\n"
 "          // eof\n"
+"          _status = Connection.Closed\n"
 "        } else {\n"
 "          System.print(data.bytes.toList)\n"
 "          _readBuffer = _readBuffer + data\n"

@@ -110,6 +110,7 @@ class Connection {
     dataReceived(data) {
         if (data==null) {
           // eof
+          _status = Connection.Closed
         } else {
           System.print(data.bytes.toList)
           _readBuffer = _readBuffer + data

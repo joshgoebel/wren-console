@@ -49,7 +49,34 @@ import "socket" for Connection, UVServer, UVConnection
 // export httpcore except parseHeader
 
 class Parser {
-
+  construct new(s) { 
+    _s = s 
+    _i = 0
+  }
+  skip(s) {
+    var i = 0
+    for (chr in s) {
+      if (_s[_i] == s[i]) {
+        _i = _i + 1
+        i = i + 1
+      } else {
+        return null
+      }
+    }
+    return s
+  }
+  // TODO: ignore case
+  skipIgnoreCase(s) { skip(s) }
+  isDigit(c) { "0123456789".contains(c) }
+  parseSaturatedNatural() {
+    var n = ""
+    while (isDigit(_s[_i])) {
+      n = n + _s[_i]
+      _i = _i + 1
+      if (_i ==_s.count ) break
+    }
+    return Num.fromString(n)
+  }
 }
 
 class Header {
@@ -57,7 +84,35 @@ class Header {
   name { _name }
   name=(s) { _name = s }
   value { _value }
-  value=(s) { _value = v }
+  value=(v) { _value = v }
+}
+
+// Uri = object
+//   scheme*, username*, password*: string
+//   hostname*, port*, path*, query*, anchor*: string
+//   opaque*: bool
+//   isIpv6: bool
+
+class Uri {
+  construct new() {}
+
+  scheme { _scheme }
+  username { _username }
+  password { _password }
+  hostname { _hostname }
+  port { _port }
+  path { _path }
+  query { _query }
+  anchor { _anchor }
+
+  scheme=(scheme) { _scheme = scheme}
+  username=(username) { _username = username}
+  password=(password) { _password = password}
+  hostname=(hostname) { _hostname = hostname}
+  port=(port) { _port = port}
+  path=(path) { _path = path}
+  query=(query) { _query = query}
+  anchor=(anchor) { _anchor = anchor}
 }
 
 class Protocol {
@@ -65,8 +120,8 @@ class Protocol {
   static HTTP11 { "HTTP/1.1"}
 
   construct new() {}
-  orig { _orig }
-  orig=(s) { _orig = s }
+  org { _orig }
+  org=(s) { _orig = s }
   major { _major }
   major=(v) { _major = v }
   minor { _minor }
@@ -122,18 +177,22 @@ class Response {
   headers=(h) { _headers = h }
   retry() { _retry = true }
 
+  send(s) { client.write(s) }
 
   respond() {
-    client.send("HTTP/1.1 %(status)\r\n")
-    for (header in headers) {
-      client.send("%(header.key): %(header.value)\r\n")
+    send("HTTP/1.1 %(status)\r\n")
+    if (body.count > 0) {
+      send("Content-Length: %(body.count)\r\n")
     }
-    client.send("\r\n")
-    client.send(body)
+    for (header in headers) {
+      send("%(header.key): %(header.value)\r\n")
+    }
+    send("\r\n")
+    send(body)
     _sent = true
   }
   error(status) {
-    client.send("HTTP/1.1 %(status)\r\n\r\n")
+    send("HTTP/1.1 %(status)\r\n\r\n")
     _sent = true
     return this
   }
@@ -193,6 +252,9 @@ class Request {
 readLine() {
   var lineSeparator
   while(true) {
+    if (client.isClosed) {
+      return client.read() || ""
+    }
     // System.print("while loop; buffer %(_readBuffer.bytes.toList)")
     lineSeparator = client.buffer_.indexOf("\r\n")
     if (lineSeparator != -1) break
@@ -201,8 +263,8 @@ readLine() {
   // var line = client.buffer_[0...lineSeparator]
   // _readBuffer = _readBuffer[lineSeparator + 2..-1]
   var line = client.seek(lineSeparator + 2)
-  if (line[-2..-1]== "\r\n") {
-    line = line[0..-3]
+  if (line.count > 2) {
+    line = line[0...-2]
   }
   // if (line == "") line = "\r\n"
   return line
@@ -283,8 +345,13 @@ readLine() {
     var result = Header.new()
     var pieces = header.split(":")
     result.name = pieces[0].trim()
-    result.value = pices[1..-1].join("").trim()
+    result.value = pieces[1..-1].join("").trim()
     return result
+  }
+
+  parseUri(url) {
+    var uri = Uri.new()
+    return uri
   }
 
   parseProtocol(protocol) {
@@ -437,7 +504,7 @@ readLine() {
       i = i + 1
     }
 
-
+    System.print("doing headers")
 //   # Headers
 
 
@@ -471,6 +538,7 @@ readLine() {
 
     while (true) {
       line = readLine()
+      System.print("Line: %(line) %(line.bytes.toList)")
       if (line.count > MAX_LINE) {
         response.error(413)
           .close().noMore()
@@ -491,7 +559,7 @@ readLine() {
         // expectation failed
       }
     }
-
+    System.print("headers done")
 
 //   # Read the body
 //   # - Check for Content-length header
@@ -626,7 +694,9 @@ class AsyncHttpServer {
       var req = Request.new()
       req.client = client
       req.response = Response.new(client)
+      System.print("processing")
       req.process()
+      System.print("processing done")
       if (!req.response.isSent) {
         callback.call(req, req.response)
       }
@@ -674,6 +744,7 @@ class AsyncHttpServer {
 
   // delegated method from UVServer
   newIncomingConnection() {
+    System.print("new incoming conn")
       var uvconn = UVConnection.new()
       if (_uv.accept(uvconn)) {
         var connection = Connection.new(uvconn)
@@ -688,6 +759,7 @@ class AsyncHttpServer {
     }
 
   awaitConnection() {
+    System.print("awaiting connection")
     _uv.delegate = this
     _awaitConn = Fiber.current
     var conn = Fiber.suspend()
@@ -771,7 +843,7 @@ import "timer" for Timer
 
 var server = AsyncHttpServer.new()
 var cb = Fn.new { |request, response |
-  System.print("#{request.reqMethod} #{request.url} #{request.headers}")
+  System.print("%(request.requestMethod) %(request.url) %(request.headers)")
   var headers = {"Content-type": "text/plain; charset=utf-8"}
   // request.
   response.status = 200

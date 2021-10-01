@@ -39,7 +39,7 @@ void alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
 // }
 
 void echo_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf) {
-  fprintf(stderr, "incomiing data (nread: %d)", nread);
+  // fprintf(stderr, "incomiing data (nread: %d)", nread);
   WrenVM* vm = getVM();
 
     if (nread < 0) {
