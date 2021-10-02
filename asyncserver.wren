@@ -128,27 +128,27 @@ class Protocol {
   minor=(v) { _minor = v }
 }
 
-class RequestMethod {
+class HTTPMethod {
   static Get { "GET" }
   static Post { "POST" }
   static Head { "HEAD" }
   static Put { "PUT" }
   static Delete { "DELETE" }
-  static Patch { "PATH" }
+  static Patch { "PATCH" }
   static Options { "OPTIONS" }
   static Connect { "CONNECT" }
   static Trace { "TRACE" }
 
   static VERBS { {
-    "GET": RequestMethod.Get,
-    "POST": RequestMethod.Post,
-    "HEAD": RequestMethod.Head,
-    "PUT": RequestMethod.Put,
-    "DELETE": RequestMethod.Delete,
-    "PATCH": RequestMethod.Patch,
-    "OPTIONS": RequestMethod.Options,
-    "CONNECT": RequestMethod.Connect,
-    "TRACE": RequestMethod.Trace
+    "GET": HTTPMethod.Get,
+    "POST": HTTPMethod.Post,
+    "HEAD": HTTPMethod.Head,
+    "PUT": HTTPMethod.Put,
+    "DELETE": HTTPMethod.Delete,
+    "PATCH": HTTPMethod.Patch,
+    "OPTIONS": HTTPMethod.Options,
+    "CONNECT": HTTPMethod.Connect,
+    "TRACE": HTTPMethod.Trace
   } }
 }
 
@@ -191,8 +191,11 @@ class Response {
     send(body)
     _sent = true
   }
-  error(status) {
+  sendStatus(status) {
     send("HTTP/1.1 %(status)\r\n\r\n")
+  }
+  error(status) {
+    sendStatus(status)
     _sent = true
     return this
   }
@@ -345,7 +348,7 @@ readLine() {
     var result = Header.new()
     var pieces = header.split(":")
     result.name = pieces[0].trim()
-    result.value = pieces[1..-1].join("").trim()
+    result.value = pieces[1..-1].join(":").trim()
     return result
   }
 
@@ -490,7 +493,7 @@ readLine() {
     var i = 0 
     for (linePart in line.split(" ")) {
       if (i==0) {
-        requestMethod = RequestMethod.VERBS[linePart]      
+        requestMethod = HTTPMethod.VERBS[linePart]      
         if (requestMethod == null) {
           return response.error(400).retry()
         }
@@ -538,7 +541,7 @@ readLine() {
 
     while (true) {
       line = readLine()
-      System.print("Line: %(line) %(line.bytes.toList)")
+      // System.print("Line: %(line) %(line.bytes.toList)")
       if (line.count > MAX_LINE) {
         response.error(413)
           .close().noMore()
@@ -552,14 +555,15 @@ readLine() {
       }
     }
 
-    if (requestMethod = RequestMethod.Post) {
+    if (requestMethod = HTTPMethod.Post) {
       if (headers.containsKey("Expect")) {
-        // if 100-continue in expect hearder
-        // else
-        // expectation failed
+        if (headers["Expect"]=="100-continue") {
+          response.sentStatus("100 Continue")
+        } else {
+          response.error("417 Expectation Failed")
+        }
       }
     }
-    System.print("headers done")
 
 //   # Read the body
 //   # - Check for Content-length header
@@ -811,7 +815,9 @@ class AsyncHttpServer {
 //   ## Terminates the async http server instance.
 //   server.socket.close()
 
-  close() {}
+  close() {
+    _uv.stop_()
+  }
 
 }
 

@@ -3,6 +3,28 @@ import "scheduler" for Scheduler
 class Socket {
 }
 
+class Lock {
+  construct new() { _fiber = null }
+  wait() { 
+    _fiber = Fiber.current
+    Scheduler.runNextScheduled_()
+  }
+  signal() { 
+    if (_fiber == null) return
+
+    var fb = _fiber
+    _fiber = null
+    Scheduler.resume_(fb) 
+  }
+  signal(v) { 
+    if (_fiber == null) return
+
+    var fb = _fiber
+    _fiber = null
+    Scheduler.resume_(fb, v) 
+  }
+}
+
 // foreign class TCPServer is Base {
 //     construct new(ip, port) {
 //             _ip = ip
@@ -52,6 +74,7 @@ class Connection {
         _uv = uvconn
         _uv.delegate = this
         _readBuffer = ""
+        _readLock = Lock.new()
         _status = Connection.Open
     }
     isClosed { _status == Connection.Closed }
@@ -70,10 +93,6 @@ class Connection {
         var result = _readBuffer
         _readBuffer = ""
         return result
-    }
-    waitForData() {
-      _sleepingForRead = Fiber.current
-      Scheduler.runNextScheduled_()
     }
     // reads data and waits to it if there isn't any
     readWait() {
@@ -106,20 +125,16 @@ class Connection {
       return line
     }
 
+    waitForData() { _readLock.wait() }
+
     #delegated
     dataReceived(data) {
-        if (data==null) {
-          // eof
+        if (data==null) { // eof
           _status = Connection.Closed
         } else {
-          System.print(data.bytes.toList)
           _readBuffer = _readBuffer + data
         }
-        if (_sleepingForRead) { 
-            var fiber = _sleepingForRead    
-            _sleepingForRead = null
-            Scheduler.resume_(fiber) 
-        }
+        _readLock.signal()
     }
 }
 
