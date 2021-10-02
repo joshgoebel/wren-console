@@ -6,7 +6,7 @@
 #include "../cli/vm.h"
 #include "scheduler.h"
 #include "wren_vm.h"
-#include "socket.h"
+#include "network.h"
 
 uv_loop_t *loop;
 struct sockaddr_in addr;

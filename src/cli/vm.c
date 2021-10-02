@@ -7,7 +7,6 @@
 #include "scheduler.h"
 #include "stat.h"
 #include "vm.h"
-#include "../module/socket.h"
 
 
 // The single VM instance that the CLI uses.
