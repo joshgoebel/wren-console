@@ -1,8 +1,5 @@
 import "scheduler" for Scheduler
 
-class Socket {
-}
-
 class Lock {
   construct new() { _fiber = null }
   wait() { 
@@ -24,21 +21,6 @@ class Lock {
     Scheduler.resume_(fb, v) 
   }
 }
-
-// foreign class TCPServer is Base {
-//     construct new(ip, port) {
-//             _ip = ip
-//             _port = port
-//         }
-//     listen=(handler) {
-//         _handler = handler
-//     }
-//     serve() {
-//         serve_(_ip,_port)
-//     }
-
-//     foreign serve_(ip,port)
-// }
 
 class TCPServer {
     construct new(ip, port) {
