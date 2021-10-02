@@ -126,6 +126,7 @@ GENERATED += $(OBJDIR)/loop-watcher.o
 GENERATED += $(OBJDIR)/loop.o
 GENERATED += $(OBJDIR)/main.o
 GENERATED += $(OBJDIR)/modules.o
+GENERATED += $(OBJDIR)/network.o
 GENERATED += $(OBJDIR)/os.o
 GENERATED += $(OBJDIR)/path.o
 GENERATED += $(OBJDIR)/pipe.o
@@ -138,7 +139,6 @@ GENERATED += $(OBJDIR)/random.o
 GENERATED += $(OBJDIR)/repl.o
 GENERATED += $(OBJDIR)/scheduler.o
 GENERATED += $(OBJDIR)/signal.o
-GENERATED += $(OBJDIR)/socket.o
 GENERATED += $(OBJDIR)/stream.o
 GENERATED += $(OBJDIR)/strscpy.o
 GENERATED += $(OBJDIR)/tcp.o
@@ -180,6 +180,7 @@ OBJECTS += $(OBJDIR)/loop-watcher.o
 OBJECTS += $(OBJDIR)/loop.o
 OBJECTS += $(OBJDIR)/main.o
 OBJECTS += $(OBJDIR)/modules.o
+OBJECTS += $(OBJDIR)/network.o
 OBJECTS += $(OBJDIR)/os.o
 OBJECTS += $(OBJDIR)/path.o
 OBJECTS += $(OBJDIR)/pipe.o
@@ -192,7 +193,6 @@ OBJECTS += $(OBJDIR)/random.o
 OBJECTS += $(OBJDIR)/repl.o
 OBJECTS += $(OBJDIR)/scheduler.o
 OBJECTS += $(OBJDIR)/signal.o
-OBJECTS += $(OBJDIR)/socket.o
 OBJECTS += $(OBJDIR)/stream.o
 OBJECTS += $(OBJDIR)/strscpy.o
 OBJECTS += $(OBJDIR)/tcp.o
@@ -425,6 +425,9 @@ $(OBJDIR)/vm.o: ../../src/cli/vm.c
 $(OBJDIR)/io.o: ../../src/module/io.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/network.o: ../../src/module/network.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/os.o: ../../src/module/os.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
@@ -432,9 +435,6 @@ $(OBJDIR)/repl.o: ../../src/module/repl.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/scheduler.o: ../../src/module/scheduler.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/socket.o: ../../src/module/socket.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/timer1.o: ../../src/module/timer.c

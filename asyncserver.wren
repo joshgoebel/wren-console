@@ -7,7 +7,7 @@
 // #    distribution, for details about the copyright.
 // #
 
-import "socket" for Connection, UVServer, UVConnection
+import "network" for Connection, UVServer, UVConnection
 
 // ## This module implements a high performance asynchronous HTTP server.
 // ##

@@ -8,7 +8,7 @@
 #include "repl.wren.inc"
 #include "scheduler.wren.inc"
 #include "timer.wren.inc"
-#include "socket.wren.inc"
+#include "network.wren.inc"
 
 extern void directoryList(WrenVM* vm);
 extern void directoryCreate(WrenVM* vm);
@@ -139,7 +139,7 @@ typedef struct
 // The array of built-in modules.
 static ModuleRegistry modules[] =
 {
-  MODULE(socket)
+  MODULE(network)
     CLASS(UVConnection)
       METHOD("write(_)", uvConnectionWrite)
       METHOD("writeBytes(_)", uvConnectionWriteBytes)
