@@ -6,7 +6,7 @@ class EchoClient {
     _conn = conn
   }
   handle() {
-    _conn.writeLn("Hello, bob")
+    _conn.print("Hello, bob")
     var x 
     while (x = _conn.readLine()) {
         System.print(x)

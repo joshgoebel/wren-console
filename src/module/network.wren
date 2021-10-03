@@ -57,7 +57,6 @@ class TCPServer {
     construct new(ip, port) {
         _ip = ip
         _port = port
-        // _connections = []
         _uv = UVServer.new(ip, port)
         _uv.delegate = this
     }
@@ -66,7 +65,6 @@ class TCPServer {
       var uvconn = UVConnection.new()
       if (_uv.accept(uvconn)) {
         var connection = Connection.new(uvconn)
-        // _connections.add(connection)
         onConnect.call(connection)
       } else {
         uvconn.close()
@@ -83,37 +81,41 @@ class Connection {
     static Closed { "closed" }
 
     construct new(uvconn) {
-        System.print("new connection")
         _uv = uvconn
         _uv.delegate = this
         _readBuffer = ""
         _readLock = Lock.new()
         _status = Connection.Open
     }
+    static connect(ip, port) {
+      var conn = UVConnection.connect(ip,port)
+      return Connection.new(conn)
+    }
+    // status
     isClosed { _status == Connection.Closed }
     isOpen { _status == Connection.Open }
-    writeLn(data) { _uv.write("%(data)\n") }
+    buffer_ { _readBuffer }
+    uv_ { _uv }
+
+    // output
+    print(data) { _uv.write("%(data)\n") }
     write(data) { _uv.write(data) }
     writeBytes(strData) { _uv.writeBytes(strData) }
-    uv_ { _uv }
-    close() { 
-        _uv.close() 
-        _status = Connection.Closed
-    }
+
     // instantly returns the read buffer or null if there is nothing to read
-    read() { 
+    readImmediate() { 
         if (_readBuffer.isEmpty) return null 
         var result = _readBuffer
         _readBuffer = ""
         return result
     }
-    // reads data and waits to it if there isn't any
-    readWait() {
+    // waits for data, then reads the entire buffer
+    readAll() {
         if (_readBuffer.isEmpty) waitForData()
-        return read()
+        return readImmediate()
     }
 
-    buffer_ { _readBuffer }
+    // TODO: correct behavior when stream is closed?
     seek(bytes) {
       var data 
       if (bytes >= _readBuffer.count) {
@@ -125,12 +127,20 @@ class Connection {
       }
       return data
     }
+    // TODO: correct behavior when stream is closed?
+    readBytes(bytes) {
+      while (isOpen && _readBuffer.count < bytes) {
+        waitForData()
+      }
+      return seek(bytes)
+    }
     readLine() {
       var lineSeparator
       while(true) {
-        System.print("while loop; buffer %(_readBuffer.bytes.toList)")
         lineSeparator = _readBuffer.indexOf("\n")
         if (lineSeparator != -1) break
+        // TODO: correct behavior when stream is closed?
+        if (isClosed) return null
         waitForData()
       }
       var line = _readBuffer[0...lineSeparator]
@@ -138,7 +148,17 @@ class Connection {
       return line
     }
 
-    waitForData() { _readLock.wait() }
+    waitForData() { 
+      if (isClosed) return
+
+      _readLock.wait() 
+    }
+
+    // utility
+    close() { 
+        _uv.close() 
+        _status = Connection.Closed
+    }
 
     #delegated
     dataReceived(data) {
