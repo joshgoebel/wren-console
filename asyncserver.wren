@@ -732,8 +732,8 @@ class AsyncHttpServer {
 //   server.socket.listen()
 
   listen(address, port) {
-    _uv = UVServer.new(address, port, this)
-    _uv.listen_()
+    _uv = UVServer.new(address, port)
+    _uv.listen()
   }
 
 // proc shouldAcceptRequest*(server: AsyncHttpServer;
@@ -816,7 +816,7 @@ class AsyncHttpServer {
 //   server.socket.close()
 
   close() {
-    _uv.stop_()
+    _uv.stop()
   }
 
 }

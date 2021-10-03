@@ -17,8 +17,11 @@ void wrenDebugPrintStackTrace(WrenVM* vm)
   {
     // TODO: Print something a little useful here. Maybe the name of the error's
     // class?
+    ObjClass* klass = wrenGetClass(vm, fiber->error);
     vm->config.errorFn(vm, WREN_ERROR_RUNTIME,
-                       NULL, -1, "[error object]");
+                       NULL, -1, 
+                       AS_CSTRING(wrenStringFormat(vm, "[error object: @]", klass->name))
+                       );
   }
 
   for (int i = fiber->numFrames - 1; i >= 0; i--)

@@ -152,8 +152,8 @@ static ModuleRegistry modules[] =
     CLASS(UVServer)
       STATIC_METHOD("<allocate>", uvServerAllocate)
       FINALIZER(uvServerFinalize)
-      METHOD("listen_()", uvServerListen)
-      METHOD("stop_()", uvServerStop)
+      METHOD("listen()", uvServerListen)
+      METHOD("stop()", uvServerStop)
       METHOD("delegate=(_)", uvServerDelegateSet)
       METHOD("accept(_)", uvServerAccept)
     END_CLASS

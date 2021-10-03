@@ -180,12 +180,21 @@ WrenHandle* wrenCurrentFiber(WrenVM* vm) {
 void do_connect(uv_connect_t *req, int status) {
   if (status!=0) {
     fprintf(stderr,"uv_tcp_connect failed %d\n", status);
+    WrenVM* vm = getVM();
+    WrenHandle* fiber = (WrenHandle*)req->data;
+    free(req);
+    // wrenReleaseHandle(vm, fiber);
+    wrenEnsureSlots(vm,3);
+    wrenSetSlotHandle(vm, 1, fiber);
+    wrenSetSlotDouble(vm, 2, status);
+    schedulerResume(fiber, true);
+    schedulerFinishResume();
     return;
   }
 
   WrenVM* vm = getVM();
   wrenEnsureSlots(vm,3);
-  wrenGetVariable(vm, "socket", "UVConnection", 0);
+  wrenGetVariable(vm, "network", "UVConnection", 0);
   uv_connection_t *conn = (uv_connection_t*)wrenSetSlotNewForeign(vm, 2, 0, sizeof(uv_connection_t));
 
   conn->handle = req->handle;

@@ -1,5 +1,36 @@
 import "scheduler" for Scheduler
 
+class NetworkErrorType {
+  static ECONNREFUSED { "ECONNREFUSED" }
+  static TYPES { { 
+    61: NetworkErrorType.ECONNREFUSED
+  } }
+}
+
+class NetworkError {
+  construct new(message, errCode) {
+    message = message
+    error = errCode.abs
+  }
+  static fromCode(err) { new("", err) }
+  error { _error }
+  error=(e) { 
+    _error = e
+    if (NetworkErrorType.TYPES.containsKey(_error)) {
+      _message = NetworkErrorType.TYPES[_error]
+    }
+  }
+  message { _message }
+  message=(m) { _message = m }
+  toString { "NetworkError: %(message) (%(error))" }
+  // TODO: change back to simple Fiber.abort when we're on wren-essentials
+  raise() {
+    System.print("ABORT: " + toString)
+    Fiber.abort(this)
+  }
+}
+
+// rough idea borrowed from Nim
 class Lock {
   construct new() { _fiber = null }
   wait() { 
@@ -26,8 +57,8 @@ class TCPServer {
     construct new(ip, port) {
         _ip = ip
         _port = port
-        _connections = []
-        _uv = UVServer.new(ip, port, this)
+        // _connections = []
+        _uv = UVServer.new(ip, port)
         _uv.delegate = this
     }
     #delegated
@@ -35,7 +66,7 @@ class TCPServer {
       var uvconn = UVConnection.new()
       if (_uv.accept(uvconn)) {
         var connection = Connection.new(uvconn)
-        _connections.add(connection)
+        // _connections.add(connection)
         onConnect.call(connection)
       } else {
         uvconn.close()
@@ -43,8 +74,8 @@ class TCPServer {
     }
     onConnect=(fn) { _onConnect = fn }
     onConnect { _onConnect }
-    serve() { _uv.listen_() }
-    stop() { _uv.stop_() }
+    serve() { _uv.listen() }
+    stop() { _uv.stop() }
 }
 
 class Connection {
@@ -120,26 +151,34 @@ class Connection {
     }
 }
 
+
+
 foreign class UVConnection {
     construct new() {}
-    // delegates must provide:
-    // - dataReceived
     static connect(ip, port) {
       connect_(ip,port)
-      return Scheduler.runNextScheduled_()
+      var result = Scheduler.runNextScheduled_()
+      if (result is UVConnection) return result
+
+      NetworkError.fromCode(result).raise()
     }
     foreign static connect_(ip, port) 
-    foreign delegate=(d)
+    
     foreign writeBytes(strData)
     foreign write(str)
     foreign close()
+
+    // delegates must provide:
+    // - dataReceived
+    foreign delegate=(d)
 }
 
 foreign class UVServer {
-    construct new(ip,port,serverWren) {}
+    construct new(ip,port) {}
     foreign accept(client)
-    foreign listen_()
-    foreign stop_()
+    foreign listen()
+    foreign stop()
+
     // delegates must provide:
     // - newIncomingConnection
     foreign delegate=(d)
