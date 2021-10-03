@@ -147,11 +147,11 @@ static ModuleRegistry modules[] =
       METHOD("delegate=(_)", uvConnectionDelegateSet)
       STATIC_METHOD("<allocate>", uvConnectionAllocate)
       STATIC_METHOD("connect_(_,_)", uvConnectionConnect)
-      FINALIZER(uvConnectionFinalize)
+      FINALIZE(uvConnectionFinalize)
     END_CLASS
     CLASS(UVServer)
       STATIC_METHOD("<allocate>", uvServerAllocate)
-      FINALIZER(uvServerFinalize)
+      FINALIZE(uvServerFinalize)
       METHOD("listen()", uvServerListen)
       METHOD("stop()", uvServerStop)
       METHOD("delegate=(_)", uvServerDelegateSet)
