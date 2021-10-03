@@ -176,8 +176,7 @@ class Connection {
 foreign class UVConnection {
     construct new() {}
     static connect(ip, port) {
-      connect_(ip,port)
-      var result = Scheduler.runNextScheduled_()
+      var result = Scheduler.await_ { connect_(ip,port) }
       if (result is UVConnection) return result
 
       NetworkError.fromCode(result).raise()
