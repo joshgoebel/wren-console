@@ -71,6 +71,8 @@ extern void uvConnectionConnect(WrenVM* vm);
 extern void uvConnectionDelegateSet(WrenVM* vm);
 extern void uvConnectionAllocate(WrenVM* vm);
 
+extern void DNS_address(WrenVM* vm);
+
 // The maximum number of foreign methods a single class defines. Ideally, we
 // would use variable-length arrays for each class in the table below, but
 // C++98 doesn't have any easy syntax for nested global static data, so we
@@ -140,6 +142,9 @@ typedef struct
 static ModuleRegistry modules[] =
 {
   MODULE(network)
+    CLASS(DNS)
+      STATIC_METHOD("address_(_)", DNS_address)
+    END_CLASS
     CLASS(UVConnection)
       METHOD("write(_)", uvConnectionWrite)
       METHOD("writeBytes(_)", uvConnectionWriteBytes)

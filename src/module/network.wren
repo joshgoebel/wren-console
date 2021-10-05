@@ -8,8 +8,8 @@ class NetworkErrorType {
 }
 
 class NetworkError {
-  construct new(message, errCode) {
-    message = message
+  construct new(msg, errCode) {
+    message = msg
     error = errCode.abs
   }
   static fromCode(err) { new("", err) }
@@ -17,7 +17,7 @@ class NetworkError {
   error=(e) { 
     _error = e
     if (NetworkErrorType.TYPES.containsKey(_error)) {
-      _message = NetworkErrorType.TYPES[_error]
+      _message = _message + " " + NetworkErrorType.TYPES[_error]
     }
   }
   message { _message }
@@ -51,6 +51,37 @@ class Lock {
     _fiber = null
     Scheduler.resume_(fb, v) 
   }
+}
+
+class ErrorTuple {
+  static raiseIfError(data) {
+    if (!(data is List)) return
+    if (!(data[0] is Num)) return
+
+    NetworkError.new(data[1], data[0]).raise()
+  }
+}
+
+class IPv4 {
+  construct new() {
+    _address = [0, 0, 0, 0]
+  }
+  construct fromString(s) {
+    _address = s.split(".").map { |n| Num.fromString(n) }
+  }
+  isValid { _address.count == 4 && _address.all {|n| n is Num && n >= 0 && n <= 255 }}
+  isIPv4 { isValid }
+  isIPv6 { false }
+  toString { _address.join(".") }
+}
+
+class DNS {
+  static lookup(hostname) {
+    var r = address_(hostname)
+    ErrorTuple.raiseIfError(r)
+    return r
+  }
+  foreign static address_(hostname) 
 }
 
 class TCPServer {
@@ -88,8 +119,14 @@ class Connection {
         _status = Connection.Open
     }
     static connect(ip, port) {
-      var conn = UVConnection.connect(ip,port)
+      var conn = UVConnection.connect(guaranteeIP(ip),port)
       return Connection.new(conn)
+    }
+    static guaranteeIP(host_or_ip) {
+      var ip = IPv4.fromString(host_or_ip)
+      if (ip.isValid) return host_or_ip
+
+      return DNS.lookup(host_or_ip)
     }
     // status
     isClosed { _status == Connection.Closed }
@@ -179,7 +216,8 @@ foreign class UVConnection {
       var result = Scheduler.await_ { connect_(ip,port) }
       if (result is UVConnection) return result
 
-      NetworkError.fromCode(result).raise()
+      // NetworkError.fromCode(result).raise()
+      ErrorTuple.raiseIfError(result)
     }
     foreign static connect_(ip, port) 
     

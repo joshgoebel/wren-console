@@ -9,7 +9,7 @@
 #include "network.h"
 
 uv_loop_t *loop;
-struct sockaddr_in addr;
+// struct sockaddr_in addr;
 
 /* utilities */
 
@@ -24,6 +24,17 @@ void wrenDispatch(WrenVM* vm, const char* name) {
     WrenHandle *handle = wrenMakeCallHandle(vm, name);
     wrenCall(vm, handle);
     wrenReleaseHandle(vm, handle);
+}
+
+void wrenSetSlotErrorTuple(WrenVM* vm, int slot, int error, const char *message) {
+  wrenEnsureSlots(vm, slot + 2);
+  wrenSetSlotNewList(vm, slot);
+  // 1
+  wrenSetSlotDouble(vm,slot+1,error);
+  wrenInsertInList(vm,slot,0,slot+1);
+  // 2
+  wrenSetSlotString(vm,slot+1,message);
+  wrenInsertInList(vm,slot,1,slot+1);
 }
 
 void alloc_buffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf) {
@@ -186,7 +197,10 @@ void do_connect(uv_connect_t *req, int status) {
     // wrenReleaseHandle(vm, fiber);
     wrenEnsureSlots(vm,3);
     wrenSetSlotHandle(vm, 1, fiber);
-    wrenSetSlotDouble(vm, 2, status);
+    // wrenSetSlotDouble(vm, 2, status);
+
+    wrenSetSlotErrorTuple(vm, 2, status,  uv_strerror(status));
+
     schedulerResume(fiber, true);
     schedulerFinishResume();
     return;
@@ -280,7 +294,62 @@ static void after_shutdown(uv_shutdown_t* req, int status) {
   free(req);
 }
 
+void getaddrinfo_cb(uv_getaddrinfo_t* handle, int status, struct addrinfo* response) {
 
+    printf("E: %s \n", handle->data);
+
+    free(handle);
+    uv_freeaddrinfo(response);
+}
+
+static void setSlot(WrenVM* vm, int slot, Value value)
+{
+  // validateApiSlot(vm, slot);
+  vm->apiStack[slot] = value;
+}
+
+void DNS_address(WrenVM* vm) {
+    uv_getaddrinfo_t handle;
+    struct addrinfo hints;
+
+    const char *hostname = wrenGetSlotString(vm, 1);
+
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+    hints.ai_flags = 0;
+
+    // TODO: async
+    int r = uv_getaddrinfo(getLoop(), &handle, NULL, hostname, NULL, &hints);
+
+
+    if (r) {
+        printf("Error at dns request: %d %s.\n",
+                r, uv_strerror(r));
+      wrenSetSlotErrorTuple(vm,0,r,  uv_strerror(r));
+      return;
+    }
+
+    wrenEnsureSlots(vm,1);
+    struct addrinfo* addr = handle.addrinfo;
+    while (addr) {
+      if (addr->ai_family == AF_INET) {
+        // ipv4
+        char c[17] = { '\0' };
+        uv_ip4_name((struct sockaddr_in*)(addr->ai_addr), c, 16);
+        wrenSetSlotString(vm, 0, c);
+        // printf("%d %d %s \n", addr->ai_flags, addr->ai_protocol, c);
+      } else if (addr->ai_family == AF_INET6) {
+        // ipv6
+        char c[40] = { '\0' };
+        uv_ip6_name((struct  sockaddr_in6*)(addr->ai_addr), c, 39);
+        wrenSetSlotString(vm, 0, c);
+        // printf("%d %d %s \n", addr->ai_flags, addr->ai_protocol, c);
+      }
+      return;
+      addr = addr->ai_next;
+    }
+}
 
 
 // int mains() {
