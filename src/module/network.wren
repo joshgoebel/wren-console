@@ -146,13 +146,22 @@ class Connection {
         _readBuffer = ""
         return result
     }
-    // waits for data, then reads the entire buffer
+    // waits for data, then reads the entire buffer 
+    //
+    // if the connection closes then one of the two following `readAlls` will
+    // return `null`, depending on if there was any data remaining in the buffer
+    // to be read or not at the time of disconnect
     readAll() {
         if (_readBuffer.isEmpty) waitForData()
         return readImmediate()
     }
 
-    // TODO: correct behavior when stream is closed?
+    // seek forward in the buffer by `bytes` bytes
+    //
+    // you can seek past the end, which will just leave the buffer empty. This
+    // is intended to be used in combination with `_buffer` to implement custom
+    // read functions in consumers.  Whether the connection is still open or not
+    // makes no difference as `seek` is merely advancing the buffer
     seek(bytes) {
       var data 
       if (bytes >= _readBuffer.count) {
@@ -164,19 +173,27 @@ class Connection {
       }
       return data
     }
-    // TODO: correct behavior when stream is closed?
+
+    // waits until `bytes` bytes of data are read from the connection
+    //
+    // - if the connection closes with no data read `null` is returned 
+    // - if fewer bytes than requested are returned then also signals that the
+    //   connection has closed
     readBytes(bytes) {
       while (isOpen && _readBuffer.count < bytes) {
         waitForData()
       }
-      return seek(bytes)
+      var data = seek(bytes)
+      if (data=="" && isClosed) return null
+      return data
     }
     readLine() {
       var lineSeparator
       while(true) {
         lineSeparator = _readBuffer.indexOf("\n")
         if (lineSeparator != -1) break
-        // TODO: correct behavior when stream is closed?
+        // if the connection is closed `null` is returned and any data in the
+        // buffer that doesn't constitue a full line is silently dropped
         if (isClosed) return null
         waitForData()
       }

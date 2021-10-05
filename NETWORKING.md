@@ -23,12 +23,10 @@ And I think it's a discussion worth having about what networking functionality i
 - `UVConnection` - low-level TCP connection
 - `UVServer` - low-level TCP server
 - `Connection` - high level connection management
-- `TCPServer` - high level 
-- `DNS` - DNS queries
+- `TCPServer` - high level TCP server
+- `DNS` - DNS utilities
 - `NetworkError` - type of error Fibers abort with for network errors
 - `AsyncHttpServer` - experimental, only half finished
-
-The low-level APIs here being `UV*` classes.
 
 ---
 
@@ -62,7 +60,7 @@ class Connection {
 }
 ```
 
-In most cases the delegate will embed the lower-level class. See `Connection` for an example.  `Connection` is simply wraps and serves as the delegate for `UVConnection`.
+In most cases the delegate will embed the lower-level class. See `Connection` for an example.  `Connection` simply wraps and serves as the delegate for `UVConnection`.
 
 
 ### UVServer (low-level API)
@@ -89,7 +87,7 @@ Example:
 ```js
     newIncomingConnection() {
       var uvconn = UVConnection.new()
-      if (_uv.accept(uvconn)) {
+      if (_uvserver.accept(uvconn)) {
         Connection.new(uvconn)
       } else {
         uvconn.close()
@@ -103,10 +101,10 @@ Example:
 class TCPServer {
     construct new(ip, port) {}
     newIncomingConnection() {} // delegated
-    onConnect=(fn)
-    onConnect 
-    serve() 
-    stop() 
+    onConnect=(fn) {}
+    onConnect {} 
+    serve() {}
+    stop() {}
 }
 ```
 
@@ -180,11 +178,16 @@ class Connection {
 
 All `read*` functions other than `readImmediate` will sleep the Fiber (via `waitForData`) and wait for data to be received if the buffer is empty or cannot fulfill the current read request (such as trying to read a line when a `\` has not yet been seen).
 
-It still needs to be decided exactly how to handle connections disconnecting in the middle of read requests.  Currently this is signaled by `dataReceived` receiving a `null` value, at which point it marks the connection as closed.  But how pending reads handle this... for example if we're waiting for a line of data with `readLine` and have a partial line in the buffer...
+Exactly how to handle connections disconnecting in the middle of read requests is a question.  For example if we're waiting for a line of data with `readLine` and have a partial line in the buffer...
 
 - should we return `null` (dropped the partial line)?
 - should we return the portion of the line we have so far?
 - should we `Fiber.abort`?
+
+Currently this is signaled by `dataReceived` receiving a `null` value (EOF), at which point it marks the connection as closed.  I've tried to make sensible decisions based on how other frameworks handle this (see my comments in code).  For example `readLine` returns `null` and leaves an incomplete line in the buffer.  A program could detect the EOF easily enough and then call `readAll()` if that last bit of data was critical for operation.
+
+This is generally the strategy I've used - control returns to the reader and `null` is used to signal to the reader the end has been reached.  This works because these functions by default pause and wait - there is no other circumstance where they would return `null`.
+
 
 Example usage:
 
