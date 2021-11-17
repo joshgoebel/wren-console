@@ -15,6 +15,7 @@ jobs:
       - name: Checkout wren-console
         uses: actions/checkout@v2
       - name: Pin dependencies
+        shell: bash
         run: |
           cat WREN_ESSENTIALS >> $GITHUB_ENV
       - name: Checkout wren-essentials
