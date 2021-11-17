@@ -1,3 +1,9 @@
+## 0.3.1
+
+- Fixes broken wren-essentials code.
+  - Upgrades `wren-essentials` to `v0.2.1`
+
+Sorry about that, everyone.
 
 ## 0.3.0
 
