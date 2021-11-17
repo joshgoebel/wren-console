@@ -1,6 +1,6 @@
 ## 0.3.1
 
-- Fixes broken wren-essentials code.
+- Fixes broken wren-essentials Wren -> C compile glitch.
   - Upgrades `wren-essentials` to `v0.2.1`
 
 Sorry about that, everyone.
