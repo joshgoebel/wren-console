@@ -165,12 +165,12 @@ void loadSharedLibrary(char* libName) {
 static const char* resolveModule(WrenVM* vm, const char* importer,
                                  const char* moduleIn)
 {
-  char *module = malloc(strlen(moduleIn));
+  char *module = malloc(strlen(moduleIn)+1);
   strcpy(module, moduleIn);
 
   if (pathIncludesLibrary(module)) {
     // this is ugly but how to do it nicer?
-    char *libName = malloc(strlen(module));
+    char *libName = malloc(strlen(module)+1);
     strcpy(libName, module);
     char *colon = strchr(libName, ':');
     strcpy(module, colon+1);
