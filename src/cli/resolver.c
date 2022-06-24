@@ -42,11 +42,11 @@ void fileRealPathSync(WrenVM* vm)
 
   uv_fs_t request;
   uv_fs_realpath(getLoop(), &request, path, NULL);
-  
+
   // fprintf("%s", request.ptr);
   // Path* result = pathNew((char*)request.ptr);
   wrenSetSlotString(vm, 0, (const char*)request.ptr);
-  
+
   uv_fs_req_cleanup(&request);
   // return result;
 }
@@ -91,7 +91,7 @@ static WrenForeignMethodFn bindResolverForeignMethod(WrenVM* vm, const char* mod
   return NULL;
 }
 
-static void write(WrenVM* vm, const char* text)
+static void writeFn(WrenVM* vm, const char* text)
 {
   printf("%s", text);
 }
@@ -140,7 +140,7 @@ void initResolverVM()
   // config.bindForeignClassFn = bindForeignClass;
   // config.resolveModuleFn = resolveModule;
   // config.loadModuleFn = readModule;
-  config.writeFn = write;
+  config.writeFn = writeFn;
   config.errorFn = reportError;
 
   resolver = wrenNewVM(&config);

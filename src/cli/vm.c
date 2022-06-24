@@ -33,12 +33,12 @@ static char* readFile(const char* path)
 {
   FILE* file = fopen(path, "rb");
   if (file == NULL) return NULL;
-  
+
   // Find out how big the file is.
   fseek(file, 0L, SEEK_END);
   size_t fileSize = ftell(file);
   rewind(file);
-  
+
   // Allocate a buffer for it.
   char* buffer = (char*)malloc(fileSize + 1);
   if (buffer == NULL)
@@ -46,7 +46,7 @@ static char* readFile(const char* path)
     fprintf(stderr, "Could not read file \"%s\".\n", path);
     exit(74);
   }
-  
+
   // Read the entire file.
   size_t bytesRead = fread(buffer, 1, fileSize, file);
   if (bytesRead < fileSize)
@@ -54,10 +54,10 @@ static char* readFile(const char* path)
     fprintf(stderr, "Could not read file \"%s\".\n", path);
     exit(74);
   }
-  
+
   // Terminate the string.
   buffer[bytesRead] = '\0';
-  
+
   fclose(file);
   return buffer;
 }
@@ -106,7 +106,7 @@ static WrenForeignMethodFn bindForeignMethod(WrenVM* vm, const char* module,
   WrenForeignMethodFn method = bindBuiltInForeignMethod(vm, module, className,
                                                         isStatic, signature);
   if (method != NULL) return method;
-  
+
   if (bindMethodFn != NULL)
   {
     return bindMethodFn(vm, module, className, isStatic, signature);
@@ -132,7 +132,7 @@ static WrenForeignClassMethods bindForeignClass(
   return methods;
 }
 
-static void write(WrenVM* vm, const char* text)
+static void writeFn(WrenVM* vm, const char* text)
 {
   printf("%s", text);
 }
@@ -145,11 +145,11 @@ void reportError(WrenVM* vm, WrenErrorType type,
     case WREN_ERROR_COMPILE:
       fprintf(stderr, "[%s line %d] %s\n", module, line, message);
       break;
-      
+
     case WREN_ERROR_RUNTIME:
       fprintf(stderr, "%s\n", message);
       break;
-      
+
     case WREN_ERROR_STACK_TRACE:
       fprintf(stderr, "[%s line %d] in %s\n", module, line, message);
       break;
@@ -165,7 +165,7 @@ static void initVM()
   config.bindForeignClassFn = bindForeignClass;
   config.resolveModuleFn = resolveModule;
   config.loadModuleFn = loadModule;
-  config.writeFn = write;
+  config.writeFn = writeFn;
   config.errorFn = reportError;
 
   // Since we're running in a standalone process, be generous with memory.
@@ -196,7 +196,7 @@ static void uvShutdown() {
   int result = uv_loop_close(loop);
   if (result != UV_EBUSY) return;
 
-  // walk open handles and shut them down    
+  // walk open handles and shut them down
   uv_walk(loop, on_uvWalkForShutdown, NULL);
   uv_run(loop, UV_RUN_ONCE);
   result = uv_loop_close(loop);
@@ -211,7 +211,7 @@ static void freeVM()
   schedulerShutdown();
   uvShutdown();
   free(loop);
-  
+
   wrenFreeVM(vm);
 
   uv_tty_reset_mode();
@@ -227,7 +227,7 @@ WrenInterpretResult runCLI()
 
   WrenInterpretResult result = wrenInterpret(vm, "<cli>", "import \"cli\" for CLI\n");
   if (result == WREN_RESULT_SUCCESS) { result = wrenInterpret(vm, "<cli>", "CLI.start()"); }
-  
+
   if (result == WREN_RESULT_SUCCESS)
   {
     uv_run(loop, UV_RUN_DEFAULT);
@@ -235,7 +235,7 @@ WrenInterpretResult runCLI()
 
   freeVM();
   freeResolver();
-  
+
   return result;
 }
 
