@@ -203,7 +203,7 @@ static ModuleRegistry additionalRegistry[] =
 static LibraryRegistry libraries[MAX_LIBRARIES] = {
   { "core", (ModuleRegistry (*)[MAX_MODULES_PER_LIBRARY])&coreCLImodules},
   { "addl_modules", (ModuleRegistry (*)[MAX_MODULES_PER_LIBRARY])&additionalRegistry},
-  { "essential", (ModuleRegistry (*)[MAX_MODULES_PER_LIBRARY])&essentialRegistry},
+  { "lib_essentials", (ModuleRegistry (*)[MAX_MODULES_PER_LIBRARY])&essentialRegistry},
   { NULL, NULL }
 };
 
@@ -279,7 +279,7 @@ WrenLoadModuleResult loadBuiltInModule(const char* name)
   size_t length = strlen(*module->source);
   char* copy = (char*)malloc(length + 1);
   memcpy(copy, *module->source, length + 1);
-   
+
   result.onComplete = loadModuleComplete;
   result.source = copy;
   return result;
