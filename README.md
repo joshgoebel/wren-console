@@ -224,6 +224,11 @@ From that folder, run `make`.
 `cd projects/make`   
 `make`
 
+#### Linux on ARM
+
+`cd projects/make.arm`  
+`make`
+
 ### FreeBSD
 
 The `projects/make.bsd` folder contains a `make` project.   
