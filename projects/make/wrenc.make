@@ -15,6 +15,10 @@ ifeq (.exe,$(findstring .exe,$(ComSpec)))
 	SHELLTYPE := msdos
 endif
 
+# This makefile can be used to compile on Linux for ARM cpu,
+# but without the `-m64` flag
+machine := $(shell uname -m)
+
 # Configurations
 # #############################################
 
@@ -38,9 +42,14 @@ TARGETDIR = ../../bin
 TARGET = $(TARGETDIR)/wrenc
 OBJDIR = obj/64bit/Release
 DEFINES += -DNDEBUG -D_GNU_SOURCE
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O3 -std=c99
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O3
-ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -s
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O3 -std=c99
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -O3
+ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -s
+ifeq ($(machine),x86_64)
+	ALL_CFLAGS += -m64
+	ALL_CXXFLAGS += -m64
+	ALL_LDFLAGS += -m64
+endif
 
 else ifeq ($(config),release_32bit)
 TARGETDIR = ../../bin
@@ -65,9 +74,14 @@ TARGETDIR = ../../bin
 TARGET = $(TARGETDIR)/wrenc_d
 OBJDIR = obj/64bit/Debug
 DEFINES += -DDEBUG -D_GNU_SOURCE
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g -std=c99
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -g
-ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -g -std=c99
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -g
+ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64
+ifeq ($(machine),x86_64)
+	ALL_CFLAGS += -m64
+	ALL_CXXFLAGS += -m64
+	ALL_LDFLAGS += -m64
+endif
 
 else ifeq ($(config),debug_32bit)
 TARGETDIR = ../../bin
