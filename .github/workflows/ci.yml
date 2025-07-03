@@ -10,7 +10,7 @@ on:
 
 jobs:
   build_and_test_windows:
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
       - name: Checkout wren-console
         uses: actions/checkout@v2
@@ -26,14 +26,14 @@ jobs:
           ref: ${{env.WREN_ESSENTIALS}}
       - name: build
         run: |
-          cd "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\"
+          cd "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\"
           dir $Env:GITHUB_WORKSPACE
           .\MSBuild.exe $Env:GITHUB_WORKSPACE\projects\vs2019\wrenc.vcxproj /p:Configuration="Debug 64bit" /p:Platform="x64"
           cd $Env:GITHUB_WORKSPACE
           dir $Env:GITHUB_WORKSPACE
           .\bin\wrenc_d.exe package.wren install
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: wrenc-windows
           path: |
@@ -64,7 +64,7 @@ jobs:
           ./bin/wrenc package.wren install
           python3 ./util/test.py
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: wrenc-mac
           path: |
@@ -90,7 +90,7 @@ jobs:
           ./bin/wrenc package.wren install
           python3 ./util/test.py
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: wrenc-linux
           path: |
