@@ -1,3 +1,7 @@
+## 0.3.2
+
+- now builds on newer glibc >= 2.3.4
+
 ## 0.3.1
 
 - Fixes broken wren-essentials Wren -> C compile glitch.
